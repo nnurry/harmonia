@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timezone
 
 from config.cloud_init import CloudInitConfig
-from services.cli import LibvirtCLI
+from services.cli import DiskImageService
 
 
 class CloudInitService:
@@ -33,7 +33,7 @@ class CloudInitService:
             meta_data_file.write(config.meta_data.to_ci_format())
             network_config_file.write(config.network_config.to_ci_format())
 
-        LibvirtCLI.create_cloud_init_iso(
+        DiskImageService.create_cloud_init_iso(
             iso_path,
             [
                 user_data_path,

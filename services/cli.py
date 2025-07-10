@@ -13,6 +13,8 @@ class CLI:
             )
             if result.stderr:
                 logger.warning(f"{description} stderr:\n{result.stderr.strip()}")
+            else:
+                logger.info(f"{description} stoud:\n{result.stdout.strip()}")
             logger.info(f"{description} completed successfully.")
             return result
         except subprocess.CalledProcessError as e:
@@ -32,7 +34,7 @@ class CLI:
             raise
 
 
-class LibvirtCLIService(CLI):
+class DiskImageService(CLI):
     @staticmethod
     def create_cloud_init_iso(iso_path: str, paths_to_include: list[str]) -> str:
         cmd_parts = [
@@ -45,33 +47,34 @@ class LibvirtCLIService(CLI):
             "-r",
         ]
         cmd_parts.extend(paths_to_include)
-        CLI.run_command(cmd_parts, "Cloud-Init ISO creation")
-        return iso_path
+        return CLI.run_command(cmd_parts, "Cloud-Init ISO creation")
 
+
+class LibvirtCLIService(CLI):
     @staticmethod
     def virt_xml_edit(vm_name: str, options: list[str]):
         cmd_parts = ["virt-xml", vm_name, "--edit"]
         cmd_parts.extend(options)
-        CLI.run_command(cmd_parts, f"editing VM '{vm_name}' XML")
+        return CLI.run_command(cmd_parts, f"editing VM '{vm_name}' XML")
 
     @staticmethod
     def virt_clone(
-        original_vm_name: str,
-        new_vm_name: str,
+        src_vm_name: str,
+        dest_vm_name: str,
         auto_clone: bool = True,
         additional_options: list[str] = None,
     ):
         cmd_parts = [
             "virt-clone",
             "--original",
-            original_vm_name,
+            src_vm_name,
             "--name",
-            new_vm_name,
+            dest_vm_name,
         ]
         if auto_clone:
             cmd_parts.append("--auto-clone")
         if additional_options:
             cmd_parts.extend(additional_options)
-        CLI.run_command(
-            cmd_parts, f"cloning VM '{original_vm_name}' to '{new_vm_name}'"
+        return CLI.run_command(
+            cmd_parts, f"cloning VM '{src_vm_name}' to '{dest_vm_name}'"
         )
