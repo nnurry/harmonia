@@ -1,7 +1,8 @@
 import os
-import subprocess
 from config.cloud_init import CloudInitConfig
 from datetime import datetime, timezone
+
+from services.cli import LibvirtCLI
 
 
 def generate_ci_base_dir(ci_root_dir: str, prefix_name: str):
@@ -30,18 +31,13 @@ def write_cloud_init_iso_to_disk(
         network_config_file.write(config.network_config.to_ci_format())
 
     iso_path = os.path.join(ci_base_dir, iso_filename)
-    cmd_parts = [
-        "mkisofs",
-        "-output",
+    LibvirtCLI.create_cloud_init_iso(
         iso_path,
-        "-volid",
-        "cidata",
-        "-joliet",
-        "-r",
-        user_data_path,
-        meta_data_path,
-        network_config_path,
-    ]
+        [
+            user_data_path,
+            meta_data_path,
+            network_config_path,
+        ],
+    )
 
-    subprocess.run(cmd_parts, check=True, capture_output=True, text=True, shell=False)
     return iso_path
