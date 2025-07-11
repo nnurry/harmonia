@@ -19,10 +19,19 @@ type VMGroup struct {
 	Nodes         []VMNode      `yaml:"nodes"`
 }
 
+type SharedConfigs struct {
+	SSH       SSHConfig     `yaml:"ssh"`
+	CloudInit CloudInitBase `yaml:"cloud_init"`
+}
+
 type SSHConfig struct {
 	User           string `yaml:"user"`
 	PublicKeyPath  string `yaml:"public_key_path"`
 	PrivateKeyPath string `yaml:"private_key_path"`
+}
+
+func (s *SSHConfig) GetExpandedPublicKeyPath() (string, error) {
+	return utils.ExpandPath(s.PublicKeyPath)
 }
 
 type CloudInitBase struct {
@@ -41,16 +50,7 @@ type VMNode struct {
 	IsCowClone     bool   `yaml:"is_cow_clone"`
 }
 
-type SharedConfigs struct {
-	SSH       SSHConfig     `yaml:"ssh"`
-	CloudInit CloudInitBase `yaml:"cloud_init"`
-}
-
-func (s *SSHConfig) GetExpandedPublicKeyPath() (string, error) {
-	return utils.ExpandPath(s.PublicKeyPath)
-}
-
-func LoadConfigFromFile(filePath string) (*Config, error) {
+func LoadFromFile(filePath string) (*Config, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file %s: %w", filePath, err)
