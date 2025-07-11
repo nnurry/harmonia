@@ -1,22 +1,24 @@
 import os
 from datetime import datetime, timezone
 
-from config.cloud_init import CloudInitConfig
-from services.cli import DiskImageService
+from interface.service.cli import IDiskImageService
+from interface.service.cloud_init import ICloudInitService
 
 
-class CloudInitService:
-    @staticmethod
-    def generate_ci_base_dir(ci_root_dir: str, prefix_name: str) -> str:
+class CloudInitService(ICloudInitService):
+    def __init__(self, disk_img_svc: IDiskImageService):
+        self.disk_img_svc = disk_img_svc
+
+    def name(cls):
+        return "cloud-init"
+
+    def generate_ci_base_dir(self, ci_root_dir, prefix_name):
         ts_version = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")
         return os.path.abspath(os.path.join(ci_root_dir, prefix_name, ts_version))
 
-    @staticmethod
     def write_cloud_init_iso_to_disk(
-        config: CloudInitConfig,
-        ci_base_dir: str,
-        iso_filename: str = "cidata.iso",
-    ) -> str:
+        self, config, ci_base_dir, iso_filename="cidata.iso"
+    ):
         os.makedirs(ci_base_dir, exist_ok=True)
 
         user_data_path = os.path.join(ci_base_dir, "user-data")
@@ -33,7 +35,7 @@ class CloudInitService:
             meta_data_file.write(config.meta_data.to_ci_format())
             network_config_file.write(config.network_config.to_ci_format())
 
-        DiskImageService.create_cloud_init_iso(
+        self.disk_img_svc.create_cloud_init_iso(
             iso_path,
             [
                 user_data_path,
