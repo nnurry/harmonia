@@ -1,0 +1,132 @@
+clusters:
+  - name: powerhouse
+    type: workload
+    base_vm_name: "leap-base-VM-latest"
+    shared_configs:
+      ssh:
+        user: root
+        public_key_path: "~/.ssh/shared-VM-ssh-key-id_ed25519.pub"
+        private_key_path: "~/.ssh/shared-VM-ssh-key-id_ed25519"
+      cloud_init:
+        nameservers:
+          - "8.8.8.8"
+          - "8.8.4.4"
+        disable_root_pw: true
+
+    nodes:
+      control_plane:
+        - name: "master-1"
+          ip_address: "192.168.10.101"
+          gateway_address: "192.168.10.1"
+          vcpu: 2
+          memory_gb: 8
+          disk_gb: 50
+          mac_address: "52:54:00:00:00:01"
+          is_cow_clone: true
+
+        - name: "master-2"
+          ip_address: "192.168.10.102"
+          gateway_address: "192.168.10.1"
+          vcpu: 2
+          memory_gb: 8
+          disk_gb: 50
+          mac_address: "52:54:00:00:00:02"
+          is_cow_clone: true
+
+        - name: "master-3"
+          ip_address: "192.168.10.103"
+          gateway_address: "192.168.10.1"
+          vcpu: 2
+          memory_gb: 8
+          disk_gb: 50
+          mac_address: "52:54:00:00:00:03"
+          is_cow_clone: true
+
+      worker:
+        - name: "worker-1"
+          ip_address: "192.168.10.111"
+          gateway_address: "192.168.10.1"
+          vcpu: 2
+          memory_gb: 16
+          disk_gb: 50
+          mac_address: "52:54:00:00:00:11"
+          is_cow_clone: true
+
+        - name: "worker-2"
+          ip_address: "192.168.10.112"
+          gateway_address: "192.168.10.1"
+          vcpu: 2
+          memory_gb: 16
+          disk_gb: 50
+          mac_address: "52:54:00:00:00:12"
+          is_cow_clone: true
+
+        - name: "worker-3"
+          ip_address: "192.168.10.113"
+          gateway_address: "192.168.10.1"
+          vcpu: 2
+          memory_gb: 16
+          disk_gb: 50
+          mac_address: "52:54:00:00:00:13"
+          is_cow_clone: true
+
+        - name: "worker-4"
+          ip_address: "192.168.10.114"
+          gateway_address: "192.168.10.1"
+          vcpu: 2
+          memory_gb: 16
+          disk_gb: 50
+          mac_address: "52:54:00:00:00:14"
+          is_cow_clone: true
+
+        - name: "worker-5"
+          ip_address: "192.168.10.115"
+          gateway_address: "192.168.10.1"
+          vcpu: 2
+          memory_gb: 16
+          disk_gb: 50
+          mac_address: "52:54:00:00:00:15"
+          is_cow_clone: true
+
+  - name: auxiliary
+    type: utility
+    base_vm_name: "leap-base-VM-latest"
+    shared_configs:
+      ssh:
+        user: root
+        public_key_path: "~/.ssh/shared-VM-ssh-key-id_ed25519.pub"
+        private_key_path: "~/.ssh/shared-VM-ssh-key-id_ed25519"
+      cloud_init:
+        nameservers:
+          - "8.8.8.8"
+          - "8.8.4.4"
+        disable_root_pw: true
+    nodes:
+      control_plane:
+        - name: "master-1"
+          ip_address: "192.168.10.121"
+          gateway_address: "192.168.10.1"
+          vcpu: 2
+          memory_gb: 4
+          disk_gb: 50
+          mac_address: "52:54:00:00:00:21"
+          is_cow_clone: true
+
+      worker:
+        - name: "worker-1"
+          ip_address: "192.168.10.131"
+          gateway_address: "192.168.10.1"
+          vcpu: 2
+          memory_gb: 8
+          disk_gb: 50
+          mac_address: "52:54:00:00:00:31"
+          is_cow_clone: true
+
+        - name: "worker-2"
+          ip_address: "192.168.10.132"
+          gateway_address: "192.168.10.1"
+          vcpu: 2
+          memory_gb: 4
+          disk_gb: 50
+          mac_address: "52:54:00:00:00:32"
+          is_cow_clone: true
