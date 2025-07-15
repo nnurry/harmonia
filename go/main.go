@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/nnurry/harmonia/internal/dependencies"
 	"github.com/nnurry/harmonia/internal/service"
 	"libvirt.org/go/libvirt"
 	"libvirt.org/go/libvirtxml"
@@ -15,6 +16,11 @@ func main() {
 		panic(err)
 	}
 	fmt.Println("Opened conn")
+
+	// TODO: make these deps useful
+	depsBuilder := dependencies.InitBuilder(conn)
+	dependencies.InitFromBuilder(depsBuilder)
+
 	baseVmName := "leap-base-VM-latest-test"
 	newVmName := "leap-base-VM-latest-test-new"
 
