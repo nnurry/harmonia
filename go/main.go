@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/nnurry/harmonia/internal/service"
 	"libvirt.org/go/libvirt"
 	"libvirt.org/go/libvirtxml"
 )
@@ -37,63 +38,24 @@ func main() {
 	}
 
 	numOfCpus := 4
-	memory := uint(4 * 1024 * 1024)
-	newVmXml := libvirtxml.Domain{}
-
-	newVmXml.Name = newVmName
-	newVmXml.Metadata = baseVmXml.Metadata
-	newVmXml.OS = baseVmXml.OS
-
-	newVmXml.Memory = &libvirtxml.DomainMemory{Value: memory, Unit: "KiB"}
-	newVmXml.CurrentMemory = &libvirtxml.DomainCurrentMemory{Value: memory, Unit: "KiB"}
-	newVmXml.CPU = &libvirtxml.DomainCPU{
-		Mode: baseVmXml.CPU.Mode,
-		Topology: &libvirtxml.DomainCPUTopology{
-			Sockets: numOfCpus,
-			Threads: 1,
-			Cores:   1,
-		},
-	}
-	newVmXml.VCPU = &libvirtxml.DomainVCPU{
-		Placement: "static",
-		Current:   uint(numOfCpus),
-		Value:     uint(numOfCpus),
-	}
-
-	newVmXml.Features = baseVmXml.Features
-	newVmXml.Clock = baseVmXml.Clock
-	newVmXml.OnPoweroff = baseVmXml.OnPoweroff
-	newVmXml.OnReboot = baseVmXml.OnReboot
-	newVmXml.OnCrash = baseVmXml.OnCrash
-	newVmXml.PM = &libvirtxml.DomainPM{
-		SuspendToMem:  &libvirtxml.DomainPMPolicy{Enabled: "no"},
-		SuspendToDisk: &libvirtxml.DomainPMPolicy{Enabled: "no"},
-	}
-
-	// 1) clone base VM disk
-	// 2) add cloud-init disk
-	qcow2Disk := libvirtxml.DomainDisk{
-		Device: "disk",
-		Driver: &libvirtxml.DomainDiskDriver{Name: "qemu", Type: "qcow2", Cache: "none", Discard: "unmap"},
-		Target: &libvirtxml.DomainDiskTarget{Dev: "vdb", Bus: "virtio"},
-		Source: &libvirtxml.DomainDiskSource{File: &libvirtxml.DomainDiskSourceFile{File: qcow2DiskPath}},
-		Boot:   &libvirtxml.DomainDeviceBoot{Order: 1},
-	}
-	cloudInitDisk := libvirtxml.DomainDisk{
-		Device:   "cdrom",
-		Driver:   &libvirtxml.DomainDiskDriver{Name: "qemu", Type: "raw"},
-		Source:   &libvirtxml.DomainDiskSource{File: &libvirtxml.DomainDiskSourceFile{File: cloudInitDiskPath}},
-		Target:   &libvirtxml.DomainDiskTarget{Dev: "hdc", Bus: "sata"},
-		ReadOnly: &libvirtxml.DomainDiskReadOnly{},
-		Boot:     &libvirtxml.DomainDeviceBoot{Order: 2},
-	}
-	newVmXml.Devices = baseVmXml.Devices
-	newVmXml.Devices.Disks = []libvirtxml.DomainDisk{qcow2Disk, cloudInitDisk}
-
-	newVmXmlStr, err := baseVmXml.Marshal()
+	memory := uint(8 * 1024 * 1024)
+	newVmBuilder, err := service.NewLibvirtVmBuilder(baseVmXml)
 	if err != nil {
 		panic(err)
 	}
+
+	newVmXmlStr, err := newVmBuilder.
+		SetVmName(newVmName).
+		SetNumOfCpus(numOfCpus).
+		SetMemory(memory, "KiB").
+		SetCiDiskPath(cloudInitDiskPath).
+		SetQcow2DiskPath(qcow2DiskPath).
+		BuildXMLString()
+
+	if err != nil {
+		panic(err)
+	}
+
 	dom, err := conn.DomainDefineXML(newVmXmlStr)
 	if err != nil {
 		panic(err)
