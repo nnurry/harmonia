@@ -71,14 +71,14 @@ func NewLibvirtVmBuilder(baseVmXml *libvirtxml.Domain) (*LibvirtVmBuilder, error
 	builder.newVmXml = newVmXml
 	return builder, nil
 }
-func (builder *LibvirtVmBuilder) SetVmName(name string) *LibvirtVmBuilder {
+func (builder *LibvirtVmBuilder) WithVmName(name string) *LibvirtVmBuilder {
 	builder.newVmXml.Name = name
 
 	builder.requiredFlags[SET_VM_NAME] = true
 	return builder
 }
 
-func (builder *LibvirtVmBuilder) SetNumOfCpus(numOfCpus int) *LibvirtVmBuilder {
+func (builder *LibvirtVmBuilder) WithNumOfCpus(numOfCpus int) *LibvirtVmBuilder {
 	builder.newVmXml.CPU = &libvirtxml.DomainCPU{
 		Mode: builder.baseVmXml.CPU.Mode,
 		Topology: &libvirtxml.DomainCPUTopology{
@@ -97,7 +97,7 @@ func (builder *LibvirtVmBuilder) SetNumOfCpus(numOfCpus int) *LibvirtVmBuilder {
 	return builder
 }
 
-func (builder *LibvirtVmBuilder) SetMemory(memory uint, unit string) *LibvirtVmBuilder {
+func (builder *LibvirtVmBuilder) WithMemory(memory uint, unit string) *LibvirtVmBuilder {
 	builder.newVmXml.Memory = &libvirtxml.DomainMemory{Value: memory, Unit: unit}
 	builder.newVmXml.CurrentMemory = &libvirtxml.DomainCurrentMemory{Value: memory, Unit: unit}
 
@@ -105,7 +105,7 @@ func (builder *LibvirtVmBuilder) SetMemory(memory uint, unit string) *LibvirtVmB
 	return builder
 }
 
-func (builder *LibvirtVmBuilder) SetQcow2DiskPath(path string) *LibvirtVmBuilder {
+func (builder *LibvirtVmBuilder) WithQcow2DiskPath(path string) *LibvirtVmBuilder {
 	builder.qcow2DomainDisk = &libvirtxml.DomainDisk{
 		Device: "disk",
 		Driver: &libvirtxml.DomainDiskDriver{Name: "qemu", Type: "qcow2", Cache: "none", Discard: "unmap"},
@@ -118,7 +118,7 @@ func (builder *LibvirtVmBuilder) SetQcow2DiskPath(path string) *LibvirtVmBuilder
 	return builder
 }
 
-func (builder *LibvirtVmBuilder) SetCiDiskPath(path string) *LibvirtVmBuilder {
+func (builder *LibvirtVmBuilder) WithCiDiskPath(path string) *LibvirtVmBuilder {
 	builder.ciDomainDisk = &libvirtxml.DomainDisk{
 		Device:   "cdrom",
 		Driver:   &libvirtxml.DomainDiskDriver{Name: "qemu", Type: "raw"},

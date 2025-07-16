@@ -51,11 +51,11 @@ func main() {
 	}
 
 	newVmXmlStr, err := newVmBuilder.
-		SetVmName(newVmName).
-		SetNumOfCpus(numOfCpus).
-		SetMemory(memory, "KiB").
-		SetCiDiskPath(cloudInitDiskPath).
-		SetQcow2DiskPath(qcow2DiskPath).
+		WithVmName(newVmName).
+		WithNumOfCpus(numOfCpus).
+		WithMemory(memory, "KiB").
+		WithCiDiskPath(cloudInitDiskPath).
+		WithQcow2DiskPath(qcow2DiskPath).
 		BuildXMLString()
 
 	if err != nil {
