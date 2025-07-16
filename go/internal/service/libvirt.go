@@ -7,10 +7,6 @@ import (
 	"libvirt.org/go/libvirtxml"
 )
 
-type LibvirtService struct {
-	conn *libvirt.Connect
-}
-
 type VmBuilderFlag string
 
 const (
@@ -20,6 +16,10 @@ const (
 	SET_QCOW2_DISK_PATH = VmBuilderFlag("set qcow2 disk path")
 	SET_CI_DISK_PATH    = VmBuilderFlag("set cloud-init disk path")
 )
+
+type LibvirtService struct {
+	conn *libvirt.Connect
+}
 
 func NewLibvirtService(conn *libvirt.Connect) *LibvirtService {
 	return &LibvirtService{conn: conn}
@@ -133,10 +133,15 @@ func (builder *LibvirtVmBuilder) WithCiDiskPath(path string) *LibvirtVmBuilder {
 }
 
 func (builder *LibvirtVmBuilder) BuildXMLString() (string, error) {
+	unsatisfiedFlags := []VmBuilderFlag{}
 	for flag, satisfied := range builder.requiredFlags {
 		if !satisfied {
-			return "", fmt.Errorf("failed to build VM's XML: flag '%v' not satisfied", flag)
+			unsatisfiedFlags = append(unsatisfiedFlags, flag)
 		}
+	}
+
+	if len(unsatisfiedFlags) > 0 {
+		return "", fmt.Errorf("failed to build VM's XML: flag [%v] not satisfied", unsatisfiedFlags)
 	}
 
 	builder.newVmXml.Devices.Disks = []libvirtxml.DomainDisk{
