@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/nnurry/harmonia/internal/dependencies"
 	"github.com/nnurry/harmonia/internal/service"
@@ -12,13 +11,21 @@ import (
 
 func main() {
 	fmt.Println("Opening conn")
-	connUrl := url.URL{
-		Scheme:   "qemu+ssh",
-		Host:     "nnurry@xeon-opensuse",
-		Path:     "system",
-		RawQuery: "keyfile=/develop/.host-ssh/xeon-opensuse", // https://libvirt.org/uri.html#keyfile-parameter
+
+	// https://libvirt.org/uri.html#keyfile-parameter
+	libvirtConnStr, err := service.
+		NewLibvirtConnUrlBuilder().
+		WithTransportType("ssh").
+		WithUser("nnurry").
+		WithHost("xeon-opensuse").
+		WithKeyfilePath("/develop/.host-ssh/xeon-opensuse").
+		BuildConnStr()
+
+	if err != nil {
+		panic(err)
 	}
-	conn, err := libvirt.NewConnect(connUrl.String())
+
+	conn, err := libvirt.NewConnect(libvirtConnStr)
 	if err != nil {
 		panic(err)
 	}
