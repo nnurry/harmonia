@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/nnurry/harmonia/internal/builder"
+	"github.com/nnurry/harmonia/internal/virtualization/builder"
 	"libvirt.org/go/libvirt"
 )
 

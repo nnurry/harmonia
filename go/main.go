@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/nnurry/harmonia/cmd"
-	"github.com/nnurry/harmonia/internal/builder"
-	"github.com/nnurry/harmonia/internal/service"
+	"github.com/nnurry/harmonia/internal/virtualization/builder"
+	"github.com/nnurry/harmonia/internal/virtualization/service"
 	"github.com/urfave/cli/v2"
 )
 
@@ -81,7 +81,7 @@ func main() {
 				Name:        "libvirt",
 				Description: "Interact with Libvirt via Go CLI",
 				Subcommands: []*cli.Command{
-					cmd.DefineLibvirtDomainCommand{}.Build(),
+					cmd.NewDefineLibvirtDomainCommand(),
 				},
 			},
 		},
