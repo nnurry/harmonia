@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/nnurry/harmonia/cmd"
 	"github.com/nnurry/harmonia/internal/builder"
 	"github.com/nnurry/harmonia/internal/service"
+	"github.com/urfave/cli/v2"
 )
 
-func main() {
+func test() {
 	fmt.Println("Opening conn")
 
 	// https://libvirt.org/uri.html#keyfile-parameter
@@ -67,4 +70,39 @@ func main() {
 	fmt.Println("Closing conn")
 	libvirtService.Cleanup()
 	fmt.Println("Closed conn")
+}
+
+func main() {
+	executeCmdGroup := &cli.Command{
+		Name:        "execute-command",
+		Description: "Interact with harmonia using CLI",
+		Subcommands: []*cli.Command{
+			{
+				Name:        "libvirt",
+				Description: "Interact with Libvirt via Go CLI",
+				Subcommands: []*cli.Command{
+					cmd.DefineLibvirtDomainCommand{}.BuildCliCommand(),
+				},
+			},
+		},
+	}
+
+	startServerGroup := &cli.Command{
+		Name:        "start-server",
+		Description: "Start harmonia API server",
+		Subcommands: []*cli.Command{},
+	}
+
+	app := &cli.App{
+		Name:        "harmonia",
+		Description: "Entrypoint of harmonia",
+		Commands: []*cli.Command{
+			executeCmdGroup,
+			startServerGroup,
+		},
+	}
+
+	if err := app.Run(os.Args); err != nil {
+		panic(err)
+	}
 }
