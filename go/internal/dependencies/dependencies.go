@@ -10,7 +10,7 @@ type DependenciesBuilder struct {
 }
 
 type Dependencies struct {
-	libvirtSvc *service.LibvirtService
+	libvirtSvc *service.Libvirt
 }
 
 func InitBuilder(conn *libvirt.Connect) *DependenciesBuilder {
@@ -18,7 +18,7 @@ func InitBuilder(conn *libvirt.Connect) *DependenciesBuilder {
 }
 
 func InitFromBuilder(builder *DependenciesBuilder) *Dependencies {
-	libvirtSvc := service.NewLibvirtService(builder.conn)
+	libvirtSvc := service.NewLibvirt(builder.conn)
 	return &Dependencies{
 		libvirtSvc: libvirtSvc,
 	}

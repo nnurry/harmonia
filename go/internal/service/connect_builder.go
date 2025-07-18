@@ -3,6 +3,8 @@ package service
 import (
 	"fmt"
 	"net/url"
+
+	"libvirt.org/go/libvirt"
 )
 
 type ConnUrlBuilderFlag string
@@ -16,7 +18,10 @@ const (
 	SET_KEYFILE        = ConnUrlBuilderFlag("set keyfile")
 )
 
-type LibvirtConnUrlBuilder struct {
+type LibvirtConn struct {
+}
+
+type LibvirtConnectBuilder struct {
 	transportType string
 	hypervisor    string
 	host          string
@@ -27,8 +32,8 @@ type LibvirtConnUrlBuilder struct {
 	requiredFlags map[ConnUrlBuilderFlag]bool
 }
 
-func NewLibvirtConnUrlBuilder() *LibvirtConnUrlBuilder {
-	builder := &LibvirtConnUrlBuilder{
+func NewLibvirtConnectBuilder() *LibvirtConnectBuilder {
+	builder := &LibvirtConnectBuilder{
 		hypervisor:    "qemu",
 		path:          "system",
 		host:          "localhost",
@@ -37,27 +42,27 @@ func NewLibvirtConnUrlBuilder() *LibvirtConnUrlBuilder {
 	return builder
 }
 
-func (builder *LibvirtConnUrlBuilder) WithTransportType(transportType string) *LibvirtConnUrlBuilder {
+func (builder *LibvirtConnectBuilder) WithTransportType(transportType string) *LibvirtConnectBuilder {
 	builder.transportType = transportType
 	return builder
 }
 
-func (builder *LibvirtConnUrlBuilder) WithHypervisor(hypervisor string) *LibvirtConnUrlBuilder {
+func (builder *LibvirtConnectBuilder) WithHypervisor(hypervisor string) *LibvirtConnectBuilder {
 	builder.hypervisor = hypervisor
 	return builder
 }
 
-func (builder *LibvirtConnUrlBuilder) WithUser(user string) *LibvirtConnUrlBuilder {
+func (builder *LibvirtConnectBuilder) WithUser(user string) *LibvirtConnectBuilder {
 	builder.user = user
 	return builder
 }
 
-func (builder *LibvirtConnUrlBuilder) WithHost(host string) *LibvirtConnUrlBuilder {
+func (builder *LibvirtConnectBuilder) WithHost(host string) *LibvirtConnectBuilder {
 	builder.host = host
 	return builder
 }
 
-func (builder *LibvirtConnUrlBuilder) WithConnectAsRoot(connectAsRoot bool) *LibvirtConnUrlBuilder {
+func (builder *LibvirtConnectBuilder) WithConnectAsRoot(connectAsRoot bool) *LibvirtConnectBuilder {
 	if connectAsRoot {
 		builder.path = "system"
 	} else {
@@ -66,12 +71,12 @@ func (builder *LibvirtConnUrlBuilder) WithConnectAsRoot(connectAsRoot bool) *Lib
 	return builder
 }
 
-func (builder *LibvirtConnUrlBuilder) WithKeyfilePath(keyfilePath string) *LibvirtConnUrlBuilder {
+func (builder *LibvirtConnectBuilder) WithKeyfilePath(keyfilePath string) *LibvirtConnectBuilder {
 	builder.keyfilePath = keyfilePath
 	return builder
 }
 
-func (builder *LibvirtConnUrlBuilder) BuildConnStr() (string, error) {
+func (builder *LibvirtConnectBuilder) BuildConnectURL() (string, error) {
 	unsatisfiedFlags := []ConnUrlBuilderFlag{}
 	for flag, satisfied := range builder.requiredFlags {
 		if !satisfied {
@@ -108,4 +113,18 @@ func (builder *LibvirtConnUrlBuilder) BuildConnStr() (string, error) {
 	}
 
 	return connUrl.String(), nil
+}
+
+func (builder *LibvirtConnectBuilder) Build() (*libvirt.Connect, error) {
+	connectUrl, err := builder.BuildConnectURL()
+	if err != nil {
+		return nil, err
+	}
+
+	connect, err := libvirt.NewConnect(connectUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect, nil
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/nnurry/harmonia/internal/dependencies"
 	"github.com/nnurry/harmonia/internal/service"
 	"libvirt.org/go/libvirt"
 	"libvirt.org/go/libvirtxml"
@@ -13,27 +12,22 @@ func main() {
 	fmt.Println("Opening conn")
 
 	// https://libvirt.org/uri.html#keyfile-parameter
-	libvirtConnStr, err := service.
-		NewLibvirtConnUrlBuilder().
+	conn, err := service.
+		NewLibvirtConnectBuilder().
 		WithTransportType("ssh").
 		WithUser("nnurry").
 		WithHost("xeon-opensuse").
 		WithKeyfilePath("/develop/.host-ssh/xeon-opensuse").
-		BuildConnStr()
+		Build()
 
 	if err != nil {
 		panic(err)
 	}
 
-	conn, err := libvirt.NewConnect(libvirtConnStr)
-	if err != nil {
-		panic(err)
-	}
 	fmt.Println("Opened conn")
 
 	// TODO: make these deps useful
-	depsBuilder := dependencies.InitBuilder(conn)
-	dependencies.InitFromBuilder(depsBuilder)
+	// depsBuilder := dependencies.InitBuilder(conn)
 
 	baseVmName := "leap-base-VM-latest-test"
 	newVmName := "leap-base-VM-latest-test-new"
@@ -59,7 +53,7 @@ func main() {
 
 	numOfCpus := 4
 	memory := uint(8 * 1024 * 1024)
-	newVmBuilder, err := service.NewLibvirtVmBuilder(baseVmXml)
+	newVmBuilder, err := service.NewLibvirtDomainBuilder(baseVmXml)
 	if err != nil {
 		panic(err)
 	}

@@ -16,7 +16,7 @@ const (
 	SET_CI_DISK_PATH    = VmBuilderFlag("set cloud-init disk path")
 )
 
-type LibvirtVmBuilder struct {
+type LibvirtDomainBuilder struct {
 	baseVmXml       *libvirtxml.Domain
 	newVmXml        *libvirtxml.Domain
 	qcow2DomainDisk *libvirtxml.DomainDisk
@@ -25,12 +25,12 @@ type LibvirtVmBuilder struct {
 	requiredFlags map[VmBuilderFlag]bool
 }
 
-func NewLibvirtVmBuilder(baseVmXml *libvirtxml.Domain) (*LibvirtVmBuilder, error) {
+func NewLibvirtDomainBuilder(baseVmXml *libvirtxml.Domain) (*LibvirtDomainBuilder, error) {
 	if baseVmXml == nil {
 		return nil, fmt.Errorf("can't create vm builder: base vm xml object is nil")
 	}
 
-	builder := &LibvirtVmBuilder{
+	builder := &LibvirtDomainBuilder{
 		baseVmXml: baseVmXml,
 		requiredFlags: map[VmBuilderFlag]bool{
 			SET_VM_NAME:         false,
@@ -62,14 +62,14 @@ func NewLibvirtVmBuilder(baseVmXml *libvirtxml.Domain) (*LibvirtVmBuilder, error
 	builder.newVmXml = newVmXml
 	return builder, nil
 }
-func (builder *LibvirtVmBuilder) WithVmName(name string) *LibvirtVmBuilder {
+func (builder *LibvirtDomainBuilder) WithVmName(name string) *LibvirtDomainBuilder {
 	builder.newVmXml.Name = name
 
 	builder.requiredFlags[SET_VM_NAME] = true
 	return builder
 }
 
-func (builder *LibvirtVmBuilder) WithNumOfCpus(numOfCpus int) *LibvirtVmBuilder {
+func (builder *LibvirtDomainBuilder) WithNumOfCpus(numOfCpus int) *LibvirtDomainBuilder {
 	builder.newVmXml.CPU = &libvirtxml.DomainCPU{
 		Mode: builder.baseVmXml.CPU.Mode,
 		Topology: &libvirtxml.DomainCPUTopology{
@@ -88,7 +88,7 @@ func (builder *LibvirtVmBuilder) WithNumOfCpus(numOfCpus int) *LibvirtVmBuilder 
 	return builder
 }
 
-func (builder *LibvirtVmBuilder) WithMemory(memory uint, unit string) *LibvirtVmBuilder {
+func (builder *LibvirtDomainBuilder) WithMemory(memory uint, unit string) *LibvirtDomainBuilder {
 	builder.newVmXml.Memory = &libvirtxml.DomainMemory{Value: memory, Unit: unit}
 	builder.newVmXml.CurrentMemory = &libvirtxml.DomainCurrentMemory{Value: memory, Unit: unit}
 
@@ -96,7 +96,7 @@ func (builder *LibvirtVmBuilder) WithMemory(memory uint, unit string) *LibvirtVm
 	return builder
 }
 
-func (builder *LibvirtVmBuilder) WithQcow2DiskPath(path string) *LibvirtVmBuilder {
+func (builder *LibvirtDomainBuilder) WithQcow2DiskPath(path string) *LibvirtDomainBuilder {
 	builder.qcow2DomainDisk = &libvirtxml.DomainDisk{
 		Device: "disk",
 		Driver: &libvirtxml.DomainDiskDriver{Name: "qemu", Type: "qcow2", Cache: "none", Discard: "unmap"},
@@ -109,7 +109,7 @@ func (builder *LibvirtVmBuilder) WithQcow2DiskPath(path string) *LibvirtVmBuilde
 	return builder
 }
 
-func (builder *LibvirtVmBuilder) WithCiDiskPath(path string) *LibvirtVmBuilder {
+func (builder *LibvirtDomainBuilder) WithCiDiskPath(path string) *LibvirtDomainBuilder {
 	builder.ciDomainDisk = &libvirtxml.DomainDisk{
 		Device:   "cdrom",
 		Driver:   &libvirtxml.DomainDiskDriver{Name: "qemu", Type: "raw"},
@@ -123,7 +123,7 @@ func (builder *LibvirtVmBuilder) WithCiDiskPath(path string) *LibvirtVmBuilder {
 	return builder
 }
 
-func (builder *LibvirtVmBuilder) BuildXMLString() (string, error) {
+func (builder *LibvirtDomainBuilder) BuildXMLString() (string, error) {
 	unsatisfiedFlags := []VmBuilderFlag{}
 	for flag, satisfied := range builder.requiredFlags {
 		if !satisfied {

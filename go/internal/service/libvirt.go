@@ -4,10 +4,10 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
-type LibvirtService struct {
+type Libvirt struct {
 	conn *libvirt.Connect
 }
 
-func NewLibvirtService(conn *libvirt.Connect) *LibvirtService {
-	return &LibvirtService{conn: conn}
+func NewLibvirt(conn *libvirt.Connect) *Libvirt {
+	return &Libvirt{conn: conn}
 }
