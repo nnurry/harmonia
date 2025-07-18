@@ -17,9 +17,12 @@ func InitBuilder(conn *libvirt.Connect) *DependenciesBuilder {
 	return &DependenciesBuilder{conn: conn}
 }
 
-func InitFromBuilder(builder *DependenciesBuilder) *Dependencies {
-	libvirtSvc := service.NewLibvirt(builder.conn)
+func InitFromBuilder(builder *DependenciesBuilder) (*Dependencies, error) {
+	libvirtSvc, err := service.NewLibvirt(builder.conn)
+	if err != nil {
+		return nil, err
+	}
 	return &Dependencies{
 		libvirtSvc: libvirtSvc,
-	}
+	}, nil
 }

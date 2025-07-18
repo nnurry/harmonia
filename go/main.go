@@ -3,22 +3,22 @@ package main
 import (
 	"fmt"
 
+	"github.com/nnurry/harmonia/internal/builder"
 	"github.com/nnurry/harmonia/internal/service"
-	"libvirt.org/go/libvirt"
-	"libvirt.org/go/libvirtxml"
 )
 
 func main() {
 	fmt.Println("Opening conn")
 
 	// https://libvirt.org/uri.html#keyfile-parameter
-	conn, err := service.
+	connBuilder := builder.
 		NewLibvirtConnectBuilder().
 		WithTransportType("ssh").
 		WithUser("nnurry").
 		WithHost("xeon-opensuse").
-		WithKeyfilePath("/develop/.host-ssh/xeon-opensuse").
-		Build()
+		WithKeyfilePath("/develop/.host-ssh/xeon-opensuse")
+
+	libvirtService, err := service.NewLibvirtFromConnectBuilder(connBuilder)
 
 	if err != nil {
 		panic(err)
@@ -27,50 +27,32 @@ func main() {
 	fmt.Println("Opened conn")
 
 	// TODO: make these deps useful
-	// depsBuilder := dependencies.InitBuilder(conn)
-
-	baseVmName := "leap-base-VM-latest-test"
-	newVmName := "leap-base-VM-latest-test-new"
+	baseDomainName := "leap-base-VM-latest-test"
+	newDomainName := "leap-base-VM-latest-test-new"
 
 	qcow2DiskPath := "/var/lib/libvirt/images/leap-base-VM-latest-test-new.qcow2"
 	cloudInitDiskPath := "/var/lib/libvirt/images/leap-base-VM-latest-test-new.iso"
 
-	baseVM, err := conn.LookupDomainByName(baseVmName)
-	if err != nil {
-		panic(err)
-	}
-
-	baseVmXmlStr, err := baseVM.GetXMLDesc(libvirt.DOMAIN_XML_SECURE)
-	if err != nil {
-		panic(err)
-	}
-
-	baseVmXml := &libvirtxml.Domain{}
-	err = baseVmXml.Unmarshal(baseVmXmlStr)
+	baseDomain, err := libvirtService.GetDomainByName(baseDomainName)
 	if err != nil {
 		panic(err)
 	}
 
 	numOfCpus := 4
 	memory := uint(8 * 1024 * 1024)
-	newVmBuilder, err := service.NewLibvirtDomainBuilder(baseVmXml)
+	newDomainBuilder, err := builder.NewLibvirtDomainBuilder(baseDomain)
 	if err != nil {
 		panic(err)
 	}
 
-	newVmXmlStr, err := newVmBuilder.
-		WithVmName(newVmName).
+	newDomainBuilder = newDomainBuilder.
+		WithDomainName(newDomainName).
 		WithNumOfCpus(numOfCpus).
 		WithMemory(memory, "KiB").
 		WithCiDiskPath(cloudInitDiskPath).
-		WithQcow2DiskPath(qcow2DiskPath).
-		BuildXMLString()
+		WithQcow2DiskPath(qcow2DiskPath)
 
-	if err != nil {
-		panic(err)
-	}
-
-	dom, err := conn.DomainDefineXML(newVmXmlStr)
+	dom, err := libvirtService.DefineDomainFromBuilder(newDomainBuilder)
 	if err != nil {
 		panic(err)
 	}
@@ -80,9 +62,9 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("VM %v successfully defined\n", newVmName)
+	fmt.Printf("VM %v successfully defined\n", newDomainName)
 
 	fmt.Println("Closing conn")
-	conn.Close()
+	libvirtService.Cleanup()
 	fmt.Println("Closed conn")
 }

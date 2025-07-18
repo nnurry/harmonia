@@ -1,4 +1,4 @@
-package service
+package builder
 
 import (
 	"fmt"
@@ -17,9 +17,6 @@ const (
 	SET_ROOT_CONNECT   = ConnUrlBuilderFlag("set root connect")
 	SET_KEYFILE        = ConnUrlBuilderFlag("set keyfile")
 )
-
-type LibvirtConn struct {
-}
 
 type LibvirtConnectBuilder struct {
 	transportType string
@@ -85,7 +82,7 @@ func (builder *LibvirtConnectBuilder) BuildConnectURL() (string, error) {
 	}
 
 	if len(unsatisfiedFlags) > 0 {
-		return "", fmt.Errorf("failed to build Libvirt conn URL: flag [%v] not satisfied", unsatisfiedFlags)
+		return "", fmt.Errorf("flag [%v] not satisfied", unsatisfiedFlags)
 	}
 
 	scheme := builder.hypervisor
