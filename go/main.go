@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/nnurry/harmonia/cmd"
@@ -73,9 +74,9 @@ func test() {
 }
 
 func main() {
-	executeCmdGroup := &cli.Command{
-		Name:        "execute-command",
-		Description: "Interact with harmonia using CLI",
+	cliCommands := &cli.Command{
+		Name:        "cli",
+		Description: "Commands for interacting with Harmonia's features directly.",
 		Subcommands: []*cli.Command{
 			{
 				Name:        "libvirt",
@@ -87,18 +88,27 @@ func main() {
 		},
 	}
 
-	startServerGroup := &cli.Command{
-		Name:        "start-server",
-		Description: "Start harmonia API server",
-		Subcommands: []*cli.Command{},
+	apiCommands := &cli.Command{
+		Name:        "api",
+		Description: "Commands for managing the Harmonia API server.",
+		Subcommands: []*cli.Command{
+			{
+				Name:        "start",
+				Description: "Start the Harmonia API server",
+				Action: func(c *cli.Context) error {
+					log.Println("Starting Harmonia API server...")
+					return nil
+				},
+			},
+		},
 	}
 
 	app := &cli.App{
 		Name:        "harmonia",
 		Description: "Entrypoint of harmonia",
 		Commands: []*cli.Command{
-			executeCmdGroup,
-			startServerGroup,
+			cliCommands,
+			apiCommands,
 		},
 	}
 
