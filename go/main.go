@@ -81,7 +81,7 @@ func main() {
 				Name:        "libvirt",
 				Description: "Interact with Libvirt via Go CLI",
 				Subcommands: []*cli.Command{
-					cmd.DefineLibvirtDomainCommand{}.BuildCliCommand(),
+					cmd.DefineLibvirtDomainCommand{}.Build(),
 				},
 			},
 		},

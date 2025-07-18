@@ -6,5 +6,5 @@ type Command interface {
 	Description() string
 	Signature() string
 	Handler() func(ctx *cli.Context) error
-	BuildCliCommand() *cli.Command
+	Build() *cli.Command
 }

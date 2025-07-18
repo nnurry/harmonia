@@ -19,7 +19,7 @@ func (command *DefineLibvirtDomainCommand) Handler() func(ctx *cli.Context) erro
 	}
 }
 
-func (command DefineLibvirtDomainCommand) BuildCliCommand() *cli.Command {
+func (command DefineLibvirtDomainCommand) Build() *cli.Command {
 	return &cli.Command{
 		Name:   command.Signature(),
 		Usage:  command.Description(),
