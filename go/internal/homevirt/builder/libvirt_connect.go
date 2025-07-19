@@ -24,12 +24,12 @@ func (flag *ConnectUrlBuilderFlag) Name() string {
 }
 
 var (
-	SET_HYPERVISOR     types.BuilderFlag = &ConnectUrlBuilderFlag{name: "set hypervisor"}
-	SET_TRANSPORT_CONF types.BuilderFlag = &ConnectUrlBuilderFlag{name: "set transport configuration"}
-	SET_HOST           types.BuilderFlag = &ConnectUrlBuilderFlag{name: "set host"}
-	SET_USER           types.BuilderFlag = &ConnectUrlBuilderFlag{name: "set user"}
-	SET_ROOT_CONNECT   types.BuilderFlag = &ConnectUrlBuilderFlag{name: "set root connect"}
-	SET_KEYFILE        types.BuilderFlag = &ConnectUrlBuilderFlag{name: "set keyfile"}
+	SET_HYPERVISOR     = &ConnectUrlBuilderFlag{name: "set hypervisor"}
+	SET_TRANSPORT_CONF = &ConnectUrlBuilderFlag{name: "set transport configuration"}
+	SET_HOST           = &ConnectUrlBuilderFlag{name: "set host"}
+	SET_USER           = &ConnectUrlBuilderFlag{name: "set user"}
+	SET_ROOT_CONNECT   = &ConnectUrlBuilderFlag{name: "set root connect"}
+	SET_KEYFILE        = &ConnectUrlBuilderFlag{name: "set keyfile"}
 )
 
 type LibvirtConnectBuilder struct {
@@ -43,14 +43,20 @@ type LibvirtConnectBuilder struct {
 	builderFlagMap *types.BuilderFlagMap
 }
 
-func NewLibvirtConnectBuilder(useDefaultBuilderFlags bool, requiredFlags ...types.BuilderFlag) (*LibvirtConnectBuilder, error) {
+func NewLibvirtConnectBuilder(useDefaultBuilderFlags bool, requiredFlags ...*ConnectUrlBuilderFlag) (*LibvirtConnectBuilder, error) {
+	castedRequiredFlags := []types.BuilderFlag{}
+
+	for _, flag := range requiredFlags {
+		castedRequiredFlags = append(castedRequiredFlags, types.BuilderFlag(flag))
+	}
+
 	builder := &LibvirtConnectBuilder{
 		hypervisor: LIBVIRT_CONNECT_URL_DEFAULT_HYPERVISOR,
 		path:       LIBVIRT_CONNECT_URL_DEFAULT_PATH,
 		host:       LIBVIRT_CONNECT_URL_DEFAULT_HOST,
 	}
 	builderFlagMap, err := types.NewFlagMapFromBuilderFlags(
-		requiredFlags,
+		castedRequiredFlags,
 		builder.getDefaultBuilderFlags(),
 		useDefaultBuilderFlags,
 	)

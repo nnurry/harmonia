@@ -17,11 +17,11 @@ func (flag *DomainBuilderFlag) Name() string {
 }
 
 var (
-	SET_VM_NAME         types.BuilderFlag = &DomainBuilderFlag{name: "set VM name"}
-	SET_NUM_OF_CPUS     types.BuilderFlag = &DomainBuilderFlag{name: "set num of CPUs"}
-	SET_MEMORY          types.BuilderFlag = &DomainBuilderFlag{name: "set memory"}
-	SET_QCOW2_DISK_PATH types.BuilderFlag = &DomainBuilderFlag{name: "set qcow2 disk path"}
-	SET_CI_DISK_PATH    types.BuilderFlag = &DomainBuilderFlag{name: "set cloud-init disk path"}
+	SET_VM_NAME         = &DomainBuilderFlag{name: "set VM name"}
+	SET_NUM_OF_CPUS     = &DomainBuilderFlag{name: "set num of CPUs"}
+	SET_MEMORY          = &DomainBuilderFlag{name: "set memory"}
+	SET_QCOW2_DISK_PATH = &DomainBuilderFlag{name: "set qcow2 disk path"}
+	SET_CI_DISK_PATH    = &DomainBuilderFlag{name: "set cloud-init disk path"}
 )
 
 type LibvirtDomainBuilder struct {
@@ -33,10 +33,16 @@ type LibvirtDomainBuilder struct {
 	builderFlagMap *types.BuilderFlagMap
 }
 
-func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain, useDefaultBuilderFlags bool, requiredFlags ...types.BuilderFlag) (*LibvirtDomainBuilder, error) {
+func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain, useDefaultBuilderFlags bool, requiredFlags ...*DomainBuilderFlag) (*LibvirtDomainBuilder, error) {
+	castedRequiredFlags := []types.BuilderFlag{}
+
+	for _, flag := range requiredFlags {
+		castedRequiredFlags = append(castedRequiredFlags, types.BuilderFlag(flag))
+	}
+
 	builder := &LibvirtDomainBuilder{}
 	builderFlagMap, err := types.NewFlagMapFromBuilderFlags(
-		requiredFlags,
+		castedRequiredFlags,
 		builder.getDefaultBuilderFlags(),
 		useDefaultBuilderFlags,
 	)
