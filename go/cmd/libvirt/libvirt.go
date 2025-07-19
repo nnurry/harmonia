@@ -70,13 +70,13 @@ func (command *LibvirtCommand) Build() *cli.Command {
 	cliCommand := utils.ConvertInternalCommandToCliCommand(command)
 	cliCommand.Before = func(ctx *cli.Context) error {
 		connectBuilder, err := builder.NewLibvirtConnectBuilder(
-			false,
 			[]*builder.ConnectUrlBuilderFlag{
 				builder.SET_TRANSPORT_CONF,
 				builder.SET_USER,
 				builder.SET_HOST,
 				builder.SET_KEYFILE,
 			},
+			false,
 		)
 
 		if err != nil {

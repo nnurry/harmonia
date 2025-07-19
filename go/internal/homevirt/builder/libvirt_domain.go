@@ -33,7 +33,7 @@ type LibvirtDomainBuilder struct {
 	builderFlagMap *types.BuilderFlagMap
 }
 
-func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain, useDefaultBuilderFlags bool, requiredFlags []*DomainBuilderFlag) (*LibvirtDomainBuilder, error) {
+func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain, requiredFlags []*DomainBuilderFlag, useDefaultBuilderFlags bool) (*LibvirtDomainBuilder, error) {
 	castedRequiredFlags := []types.BuilderFlag{}
 
 	for _, flag := range requiredFlags {

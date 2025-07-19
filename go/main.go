@@ -16,7 +16,7 @@ func test() {
 	fmt.Println("Opening conn")
 
 	// https://libvirt.org/uri.html#keyfile-parameter
-	connBuilder, err := builder.NewLibvirtConnectBuilder(true, []*builder.ConnectUrlBuilderFlag{})
+	connBuilder, err := builder.NewLibvirtConnectBuilder([]*builder.ConnectUrlBuilderFlag{}, true)
 	if err != nil {
 		panic(err)
 	}
@@ -48,7 +48,7 @@ func test() {
 
 	numOfCpus := 4
 	memory := uint(8 * 1024 * 1024)
-	newDomainBuilder, err := builder.NewLibvirtDomainBuilder(baseDomain, true, []*builder.DomainBuilderFlag{})
+	newDomainBuilder, err := builder.NewLibvirtDomainBuilder(baseDomain, []*builder.DomainBuilderFlag{}, true)
 	if err != nil {
 		panic(err)
 	}
