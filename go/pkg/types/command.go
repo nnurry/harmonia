@@ -3,6 +3,7 @@ package types
 import "github.com/urfave/cli/v2"
 
 type InternalCommandName string
+type InternalCommandCtxKey string
 type InternalCommandConstructor func() InternalCommand
 
 type InternalCommand interface {
