@@ -17,18 +17,23 @@ func NewEmptyFlapMap() (*BuilderFlagMap, error) {
 }
 
 func NewFlagMapFromBuilderFlags(flags []BuilderFlag, defaultFlags []BuilderFlag, fallbackDefault bool) (*BuilderFlagMap, error) {
-	if (len(flags) < 1) && fallbackDefault {
-		return nil, &errors.EmptyBuilderFlagListError{}
-	}
-
 	builderFlagMap, _ := NewEmptyFlapMap()
 
-	if len(defaultFlags) < 1 {
+	if len(flags) > 0 {
+		for _, flag := range flags {
+			builderFlagMap.m[flag] = false
+		}
 		return builderFlagMap, nil
 	}
 
-	for _, flag := range defaultFlags {
-		builderFlagMap.m[flag] = false
+	if !fallbackDefault {
+		return builderFlagMap, &errors.EmptyBuilderFlagListError{}
+	}
+
+	if len(defaultFlags) > 0 {
+		for _, flag := range defaultFlags {
+			builderFlagMap.m[flag] = false
+		}
 	}
 
 	return builderFlagMap, nil
