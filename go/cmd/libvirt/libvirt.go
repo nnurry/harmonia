@@ -32,6 +32,6 @@ func (command *LibvirtCommand) Flags() []cli.Flag {
 
 func (command *LibvirtCommand) Subcommands() []*cli.Command {
 	return []*cli.Command{
-		utils.ConvertInternalCommandToCliCommand(&DefineLibvirtDomainCommand{}),
+		(&DefineLibvirtDomainCommand{}).Build(),
 	}
 }

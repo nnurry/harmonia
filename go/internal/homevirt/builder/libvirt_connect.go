@@ -9,6 +9,12 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
+const (
+	LIBVIRT_CONNECT_URL_DEFAULT_HYPERVISOR = "qemu"
+	LIBVIRT_CONNECT_URL_DEFAULT_PATH       = "system"
+	LIBVIRT_CONNECT_URL_DEFAULT_HOST       = "localhost"
+)
+
 type ConnectUrlBuilderFlag struct {
 	name string
 }
@@ -39,9 +45,9 @@ type LibvirtConnectBuilder struct {
 
 func NewLibvirtConnectBuilder(useDefaultBuilderFlags bool, requiredFlags ...types.BuilderFlag) (*LibvirtConnectBuilder, error) {
 	builder := &LibvirtConnectBuilder{
-		hypervisor: "qemu",
-		path:       "system",
-		host:       "localhost",
+		hypervisor: LIBVIRT_CONNECT_URL_DEFAULT_HYPERVISOR,
+		path:       LIBVIRT_CONNECT_URL_DEFAULT_PATH,
+		host:       LIBVIRT_CONNECT_URL_DEFAULT_HOST,
 	}
 	builderFlagMap, err := types.NewFlagMapFromBuilderFlags(
 		requiredFlags,

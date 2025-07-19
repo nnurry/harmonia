@@ -11,4 +11,5 @@ type InternalCommand interface {
 	Handler() func(ctx *cli.Context) error
 	Flags() []cli.Flag
 	Subcommands() []*cli.Command
+	Build() *cli.Command
 }

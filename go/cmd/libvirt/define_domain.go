@@ -2,6 +2,7 @@ package libvirt
 
 import (
 	"github.com/nnurry/harmonia/pkg/types"
+	"github.com/nnurry/harmonia/pkg/utils"
 	"github.com/urfave/cli/v2"
 )
 
@@ -29,4 +30,8 @@ func (command *DefineLibvirtDomainCommand) Flags() []cli.Flag {
 
 func (command *DefineLibvirtDomainCommand) Subcommands() []*cli.Command {
 	return []*cli.Command{}
+}
+
+func (command *DefineLibvirtDomainCommand) Build() *cli.Command {
+	return utils.ConvertInternalCommandToCliCommand(command)
 }
