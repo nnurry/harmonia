@@ -102,8 +102,9 @@ func main() {
 	}
 
 	app := &cli.App{
-		Name:        "harmonia",
-		Description: "Entrypoint of harmonia",
+		Name:                 "harmonia",
+		Description:          "Entrypoint of harmonia",
+		EnableBashCompletion: true,
 		Commands: []*cli.Command{
 			cliCommands,
 			apiCommands,
