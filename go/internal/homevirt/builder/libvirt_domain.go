@@ -8,14 +8,20 @@ import (
 	"libvirt.org/go/libvirtxml"
 )
 
-type DomainBuilderFlag types.BuilderFlag
+type DomainBuilderFlag struct {
+	name string
+}
 
-const (
-	SET_VM_NAME         = DomainBuilderFlag("set VM name")
-	SET_NUM_OF_CPUS     = DomainBuilderFlag("set num of CPUs")
-	SET_MEMORY          = DomainBuilderFlag("set memory")
-	SET_QCOW2_DISK_PATH = DomainBuilderFlag("set qcow2 disk path")
-	SET_CI_DISK_PATH    = DomainBuilderFlag("set cloud-init disk path")
+func (flag *DomainBuilderFlag) Name() string {
+	return flag.name
+}
+
+var (
+	SET_VM_NAME         types.BuilderFlag = &DomainBuilderFlag{name: "set VM name"}
+	SET_NUM_OF_CPUS     types.BuilderFlag = &DomainBuilderFlag{name: "set num of CPUs"}
+	SET_MEMORY          types.BuilderFlag = &DomainBuilderFlag{name: "set memory"}
+	SET_QCOW2_DISK_PATH types.BuilderFlag = &DomainBuilderFlag{name: "set qcow2 disk path"}
+	SET_CI_DISK_PATH    types.BuilderFlag = &DomainBuilderFlag{name: "set cloud-init disk path"}
 )
 
 type LibvirtDomainBuilder struct {
@@ -24,10 +30,21 @@ type LibvirtDomainBuilder struct {
 	qcow2DomainDisk *libvirtxml.DomainDisk
 	ciDomainDisk    *libvirtxml.DomainDisk
 
-	requiredFlagMap map[DomainBuilderFlag]bool
+	builderFlagMap *types.BuilderFlagMap
 }
 
-func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain, requiredFlags ...DomainBuilderFlag) (*LibvirtDomainBuilder, error) {
+func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain, useDefaultBuilderFlags bool, requiredFlags ...types.BuilderFlag) (*LibvirtDomainBuilder, error) {
+	builder := &LibvirtDomainBuilder{}
+	builderFlagMap, err := types.NewFlagMapFromBuilderFlags(
+		requiredFlags,
+		builder.getDefaultBuilderFlags(),
+		useDefaultBuilderFlags,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
 	baseDomainXmlString, err := baseDomain.GetXMLDesc(libvirt.DOMAIN_XML_SECURE)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get base domain's XML string definition: %v", err)
@@ -57,32 +74,26 @@ func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain, requiredFlags ...Domain
 
 	newDomainXml.Devices = baseDomainXml.Devices
 
-	if len(requiredFlags) < 1 {
-		requiredFlags = []DomainBuilderFlag{
-			SET_VM_NAME,
-			SET_NUM_OF_CPUS,
-			SET_MEMORY,
-			SET_CI_DISK_PATH,
-			SET_QCOW2_DISK_PATH,
-		}
-	}
-
-	requiredFlagMap := make(map[DomainBuilderFlag]bool)
-	for _, flag := range requiredFlags {
-		requiredFlagMap[flag] = false
-	}
-
-	builder := &LibvirtDomainBuilder{
-		baseDomainXml:   baseDomainXml,
-		newDomainXml:    newDomainXml,
-		requiredFlagMap: requiredFlagMap,
-	}
+	builder.baseDomainXml = baseDomainXml
+	builder.newDomainXml = newDomainXml
+	builder.builderFlagMap = builderFlagMap
 	return builder, nil
 }
+
+func (builder *LibvirtDomainBuilder) getDefaultBuilderFlags() []types.BuilderFlag {
+	return []types.BuilderFlag{
+		SET_VM_NAME,
+		SET_NUM_OF_CPUS,
+		SET_MEMORY,
+		SET_CI_DISK_PATH,
+		SET_QCOW2_DISK_PATH,
+	}
+}
+
 func (builder *LibvirtDomainBuilder) WithDomainName(name string) *LibvirtDomainBuilder {
 	builder.newDomainXml.Name = name
 
-	builder.requiredFlagMap[SET_VM_NAME] = true
+	builder.builderFlagMap.MarkAsChecked(SET_VM_NAME)
 	return builder
 }
 
@@ -101,7 +112,7 @@ func (builder *LibvirtDomainBuilder) WithNumOfCpus(numOfCpus int) *LibvirtDomain
 		Value:     uint(numOfCpus),
 	}
 
-	builder.requiredFlagMap[SET_NUM_OF_CPUS] = true
+	builder.builderFlagMap.MarkAsChecked(SET_NUM_OF_CPUS)
 	return builder
 }
 
@@ -109,7 +120,7 @@ func (builder *LibvirtDomainBuilder) WithMemory(memory uint, unit string) *Libvi
 	builder.newDomainXml.Memory = &libvirtxml.DomainMemory{Value: memory, Unit: unit}
 	builder.newDomainXml.CurrentMemory = &libvirtxml.DomainCurrentMemory{Value: memory, Unit: unit}
 
-	builder.requiredFlagMap[SET_MEMORY] = true
+	builder.builderFlagMap.MarkAsChecked(SET_MEMORY)
 	return builder
 }
 
@@ -122,7 +133,7 @@ func (builder *LibvirtDomainBuilder) WithQcow2DiskPath(path string) *LibvirtDoma
 		Boot:   &libvirtxml.DomainDeviceBoot{Order: 1},
 	}
 
-	builder.requiredFlagMap[SET_QCOW2_DISK_PATH] = true
+	builder.builderFlagMap.MarkAsChecked(SET_QCOW2_DISK_PATH)
 	return builder
 }
 
@@ -136,20 +147,13 @@ func (builder *LibvirtDomainBuilder) WithCiDiskPath(path string) *LibvirtDomainB
 		Boot:     &libvirtxml.DomainDeviceBoot{Order: 2},
 	}
 
-	builder.requiredFlagMap[SET_CI_DISK_PATH] = true
+	builder.builderFlagMap.MarkAsChecked(SET_CI_DISK_PATH)
 	return builder
 }
 
 func (builder *LibvirtDomainBuilder) BuildXMLString() (string, error) {
-	unsatisfiedFlags := []DomainBuilderFlag{}
-	for flag, satisfied := range builder.requiredFlagMap {
-		if !satisfied {
-			unsatisfiedFlags = append(unsatisfiedFlags, flag)
-		}
-	}
-
-	if len(unsatisfiedFlags) > 0 {
-		return "", fmt.Errorf("flag [%v] not satisfied", unsatisfiedFlags)
+	if err := builder.builderFlagMap.Verify(); err != nil {
+		return "", err
 	}
 
 	builder.newDomainXml.Devices.Disks = []libvirtxml.DomainDisk{

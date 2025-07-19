@@ -16,8 +16,11 @@ func test() {
 	fmt.Println("Opening conn")
 
 	// https://libvirt.org/uri.html#keyfile-parameter
-	connBuilder := builder.
-		NewLibvirtConnectBuilder().
+	connBuilder, err := builder.NewLibvirtConnectBuilder(true)
+	if err != nil {
+		panic(err)
+	}
+	connBuilder = connBuilder.
 		WithTransportType("ssh").
 		WithUser("nnurry").
 		WithHost("xeon-opensuse").
@@ -45,7 +48,7 @@ func test() {
 
 	numOfCpus := 4
 	memory := uint(8 * 1024 * 1024)
-	newDomainBuilder, err := builder.NewLibvirtDomainBuilder(baseDomain)
+	newDomainBuilder, err := builder.NewLibvirtDomainBuilder(baseDomain, true)
 	if err != nil {
 		panic(err)
 	}

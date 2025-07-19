@@ -1,22 +1,29 @@
 package builder
 
 import (
-	"fmt"
+	// "errors"
+
 	"net/url"
 
 	"github.com/nnurry/harmonia/pkg/types"
 	"libvirt.org/go/libvirt"
 )
 
-type ConnectUrlBuilderFlag types.BuilderFlag
+type ConnectUrlBuilderFlag struct {
+	name string
+}
 
-const (
-	SET_HYPERVISOR     = ConnectUrlBuilderFlag("set hypervisor")
-	SET_TRANSPORT_CONF = ConnectUrlBuilderFlag("set transport configuration")
-	SET_HOST           = ConnectUrlBuilderFlag("set host")
-	SET_USER           = ConnectUrlBuilderFlag("set user")
-	SET_ROOT_CONNECT   = ConnectUrlBuilderFlag("set root connect")
-	SET_KEYFILE        = ConnectUrlBuilderFlag("set keyfile")
+func (flag *ConnectUrlBuilderFlag) Name() string {
+	return flag.name
+}
+
+var (
+	SET_HYPERVISOR     types.BuilderFlag = &ConnectUrlBuilderFlag{name: "set hypervisor"}
+	SET_TRANSPORT_CONF types.BuilderFlag = &ConnectUrlBuilderFlag{name: "set transport configuration"}
+	SET_HOST           types.BuilderFlag = &ConnectUrlBuilderFlag{name: "set host"}
+	SET_USER           types.BuilderFlag = &ConnectUrlBuilderFlag{name: "set user"}
+	SET_ROOT_CONNECT   types.BuilderFlag = &ConnectUrlBuilderFlag{name: "set root connect"}
+	SET_KEYFILE        types.BuilderFlag = &ConnectUrlBuilderFlag{name: "set keyfile"}
 )
 
 type LibvirtConnectBuilder struct {
@@ -27,26 +34,31 @@ type LibvirtConnectBuilder struct {
 	path          string
 	keyfilePath   string
 
-	requiredFlagMap map[ConnectUrlBuilderFlag]bool
+	builderFlagMap *types.BuilderFlagMap
 }
 
-func NewLibvirtConnectBuilder(requiredFlags ...ConnectUrlBuilderFlag) *LibvirtConnectBuilder {
-	if len(requiredFlags) < 1 {
-		requiredFlags = []ConnectUrlBuilderFlag{}
-	}
-
-	requiredFlagMap := make(map[ConnectUrlBuilderFlag]bool)
-	for _, flag := range requiredFlags {
-		requiredFlagMap[flag] = false
-	}
-
+func NewLibvirtConnectBuilder(useDefaultBuilderFlags bool, requiredFlags ...types.BuilderFlag) (*LibvirtConnectBuilder, error) {
 	builder := &LibvirtConnectBuilder{
-		hypervisor:      "qemu",
-		path:            "system",
-		host:            "localhost",
-		requiredFlagMap: requiredFlagMap,
+		hypervisor: "qemu",
+		path:       "system",
+		host:       "localhost",
 	}
-	return builder
+	builderFlagMap, err := types.NewFlagMapFromBuilderFlags(
+		requiredFlags,
+		builder.getDefaultBuilderFlags(),
+		useDefaultBuilderFlags,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	builder.builderFlagMap = builderFlagMap
+	return builder, nil
+}
+
+func (builder *LibvirtConnectBuilder) getDefaultBuilderFlags() []types.BuilderFlag {
+	return []types.BuilderFlag{}
 }
 
 func (builder *LibvirtConnectBuilder) WithTransportType(transportType string) *LibvirtConnectBuilder {
@@ -84,15 +96,8 @@ func (builder *LibvirtConnectBuilder) WithKeyfilePath(keyfilePath string) *Libvi
 }
 
 func (builder *LibvirtConnectBuilder) BuildConnectURL() (string, error) {
-	unsatisfiedFlags := []ConnectUrlBuilderFlag{}
-	for flag, satisfied := range builder.requiredFlagMap {
-		if !satisfied {
-			unsatisfiedFlags = append(unsatisfiedFlags, flag)
-		}
-	}
-
-	if len(unsatisfiedFlags) > 0 {
-		return "", fmt.Errorf("flag [%v] not satisfied", unsatisfiedFlags)
+	if err := builder.builderFlagMap.Verify(); err != nil {
+		return "", err
 	}
 
 	scheme := builder.hypervisor
