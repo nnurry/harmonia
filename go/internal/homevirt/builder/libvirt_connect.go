@@ -107,8 +107,12 @@ func (builder *LibvirtConnectBuilder) WithKeyfilePath(keyfilePath string) *Libvi
 	return builder
 }
 
+func (builder *LibvirtConnectBuilder) Verify() error {
+	return builder.builderFlagMap.Verify()
+}
+
 func (builder *LibvirtConnectBuilder) BuildConnectURL() (string, error) {
-	if err := builder.builderFlagMap.Verify(); err != nil {
+	if err := builder.Verify(); err != nil {
 		return "", err
 	}
 

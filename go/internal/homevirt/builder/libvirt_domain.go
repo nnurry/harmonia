@@ -157,8 +157,12 @@ func (builder *LibvirtDomainBuilder) WithCiDiskPath(path string) *LibvirtDomainB
 	return builder
 }
 
+func (builder *LibvirtDomainBuilder) Verify() error {
+	return builder.builderFlagMap.Verify()
+}
+
 func (builder *LibvirtDomainBuilder) BuildXMLString() (string, error) {
-	if err := builder.builderFlagMap.Verify(); err != nil {
+	if err := builder.Verify(); err != nil {
 		return "", err
 	}
 
