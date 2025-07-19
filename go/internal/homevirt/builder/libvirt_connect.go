@@ -4,18 +4,19 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/nnurry/harmonia/pkg/types"
 	"libvirt.org/go/libvirt"
 )
 
-type ConnUrlBuilderFlag string
+type ConnectUrlBuilderFlag types.BuilderFlag
 
 const (
-	SET_HYPERVISOR     = ConnUrlBuilderFlag("set hypervisor")
-	SET_TRANSPORT_CONF = ConnUrlBuilderFlag("set transport configuration")
-	SET_HOST           = ConnUrlBuilderFlag("set host")
-	SET_USER           = ConnUrlBuilderFlag("set user")
-	SET_ROOT_CONNECT   = ConnUrlBuilderFlag("set root connect")
-	SET_KEYFILE        = ConnUrlBuilderFlag("set keyfile")
+	SET_HYPERVISOR     = ConnectUrlBuilderFlag("set hypervisor")
+	SET_TRANSPORT_CONF = ConnectUrlBuilderFlag("set transport configuration")
+	SET_HOST           = ConnectUrlBuilderFlag("set host")
+	SET_USER           = ConnectUrlBuilderFlag("set user")
+	SET_ROOT_CONNECT   = ConnectUrlBuilderFlag("set root connect")
+	SET_KEYFILE        = ConnectUrlBuilderFlag("set keyfile")
 )
 
 type LibvirtConnectBuilder struct {
@@ -26,15 +27,24 @@ type LibvirtConnectBuilder struct {
 	path          string
 	keyfilePath   string
 
-	requiredFlags map[ConnUrlBuilderFlag]bool
+	requiredFlagMap map[ConnectUrlBuilderFlag]bool
 }
 
-func NewLibvirtConnectBuilder() *LibvirtConnectBuilder {
+func NewLibvirtConnectBuilder(requiredFlags ...ConnectUrlBuilderFlag) *LibvirtConnectBuilder {
+	if len(requiredFlags) < 1 {
+		requiredFlags = []ConnectUrlBuilderFlag{}
+	}
+
+	requiredFlagMap := make(map[ConnectUrlBuilderFlag]bool)
+	for _, flag := range requiredFlags {
+		requiredFlagMap[flag] = false
+	}
+
 	builder := &LibvirtConnectBuilder{
-		hypervisor:    "qemu",
-		path:          "system",
-		host:          "localhost",
-		requiredFlags: map[ConnUrlBuilderFlag]bool{},
+		hypervisor:      "qemu",
+		path:            "system",
+		host:            "localhost",
+		requiredFlagMap: requiredFlagMap,
 	}
 	return builder
 }
@@ -74,8 +84,8 @@ func (builder *LibvirtConnectBuilder) WithKeyfilePath(keyfilePath string) *Libvi
 }
 
 func (builder *LibvirtConnectBuilder) BuildConnectURL() (string, error) {
-	unsatisfiedFlags := []ConnUrlBuilderFlag{}
-	for flag, satisfied := range builder.requiredFlags {
+	unsatisfiedFlags := []ConnectUrlBuilderFlag{}
+	for flag, satisfied := range builder.requiredFlagMap {
 		if !satisfied {
 			unsatisfiedFlags = append(unsatisfiedFlags, flag)
 		}

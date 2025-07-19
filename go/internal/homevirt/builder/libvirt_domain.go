@@ -3,11 +3,12 @@ package builder
 import (
 	"fmt"
 
+	"github.com/nnurry/harmonia/pkg/types"
 	"libvirt.org/go/libvirt"
 	"libvirt.org/go/libvirtxml"
 )
 
-type DomainBuilderFlag string
+type DomainBuilderFlag types.BuilderFlag
 
 const (
 	SET_VM_NAME         = DomainBuilderFlag("set VM name")
@@ -23,10 +24,10 @@ type LibvirtDomainBuilder struct {
 	qcow2DomainDisk *libvirtxml.DomainDisk
 	ciDomainDisk    *libvirtxml.DomainDisk
 
-	requiredFlags map[DomainBuilderFlag]bool
+	requiredFlagMap map[DomainBuilderFlag]bool
 }
 
-func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain) (*LibvirtDomainBuilder, error) {
+func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain, requiredFlags ...DomainBuilderFlag) (*LibvirtDomainBuilder, error) {
 	baseDomainXmlString, err := baseDomain.GetXMLDesc(libvirt.DOMAIN_XML_SECURE)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get base domain's XML string definition: %v", err)
@@ -38,19 +39,8 @@ func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain) (*LibvirtDomainBuilder,
 		return nil, fmt.Errorf("unable to deserialize base domain's XML string definition: %v", err)
 	}
 
-	builder := &LibvirtDomainBuilder{
-		baseDomainXml: baseDomainXml,
-		requiredFlags: map[DomainBuilderFlag]bool{
-			SET_VM_NAME:         false,
-			SET_NUM_OF_CPUS:     false,
-			SET_MEMORY:          false,
-			SET_CI_DISK_PATH:    false,
-			SET_QCOW2_DISK_PATH: false,
-		},
-	}
-
 	newDomainXml := &libvirtxml.Domain{}
-	newDomainXml.Type = "kdomain"
+	newDomainXml.Type = "domain"
 	newDomainXml.Metadata = baseDomainXml.Metadata
 	newDomainXml.OS = baseDomainXml.OS
 
@@ -67,13 +57,32 @@ func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain) (*LibvirtDomainBuilder,
 
 	newDomainXml.Devices = baseDomainXml.Devices
 
-	builder.newDomainXml = newDomainXml
+	if len(requiredFlags) < 1 {
+		requiredFlags = []DomainBuilderFlag{
+			SET_VM_NAME,
+			SET_NUM_OF_CPUS,
+			SET_MEMORY,
+			SET_CI_DISK_PATH,
+			SET_QCOW2_DISK_PATH,
+		}
+	}
+
+	requiredFlagMap := make(map[DomainBuilderFlag]bool)
+	for _, flag := range requiredFlags {
+		requiredFlagMap[flag] = false
+	}
+
+	builder := &LibvirtDomainBuilder{
+		baseDomainXml:   baseDomainXml,
+		newDomainXml:    newDomainXml,
+		requiredFlagMap: requiredFlagMap,
+	}
 	return builder, nil
 }
 func (builder *LibvirtDomainBuilder) WithDomainName(name string) *LibvirtDomainBuilder {
 	builder.newDomainXml.Name = name
 
-	builder.requiredFlags[SET_VM_NAME] = true
+	builder.requiredFlagMap[SET_VM_NAME] = true
 	return builder
 }
 
@@ -92,7 +101,7 @@ func (builder *LibvirtDomainBuilder) WithNumOfCpus(numOfCpus int) *LibvirtDomain
 		Value:     uint(numOfCpus),
 	}
 
-	builder.requiredFlags[SET_NUM_OF_CPUS] = true
+	builder.requiredFlagMap[SET_NUM_OF_CPUS] = true
 	return builder
 }
 
@@ -100,7 +109,7 @@ func (builder *LibvirtDomainBuilder) WithMemory(memory uint, unit string) *Libvi
 	builder.newDomainXml.Memory = &libvirtxml.DomainMemory{Value: memory, Unit: unit}
 	builder.newDomainXml.CurrentMemory = &libvirtxml.DomainCurrentMemory{Value: memory, Unit: unit}
 
-	builder.requiredFlags[SET_MEMORY] = true
+	builder.requiredFlagMap[SET_MEMORY] = true
 	return builder
 }
 
@@ -113,7 +122,7 @@ func (builder *LibvirtDomainBuilder) WithQcow2DiskPath(path string) *LibvirtDoma
 		Boot:   &libvirtxml.DomainDeviceBoot{Order: 1},
 	}
 
-	builder.requiredFlags[SET_QCOW2_DISK_PATH] = true
+	builder.requiredFlagMap[SET_QCOW2_DISK_PATH] = true
 	return builder
 }
 
@@ -127,13 +136,13 @@ func (builder *LibvirtDomainBuilder) WithCiDiskPath(path string) *LibvirtDomainB
 		Boot:     &libvirtxml.DomainDeviceBoot{Order: 2},
 	}
 
-	builder.requiredFlags[SET_CI_DISK_PATH] = true
+	builder.requiredFlagMap[SET_CI_DISK_PATH] = true
 	return builder
 }
 
 func (builder *LibvirtDomainBuilder) BuildXMLString() (string, error) {
 	unsatisfiedFlags := []DomainBuilderFlag{}
-	for flag, satisfied := range builder.requiredFlags {
+	for flag, satisfied := range builder.requiredFlagMap {
 		if !satisfied {
 			unsatisfiedFlags = append(unsatisfiedFlags, flag)
 		}
