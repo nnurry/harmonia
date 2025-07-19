@@ -104,10 +104,12 @@ func (command *LibvirtCommand) Build() *cli.Command {
 		}
 
 		if err = connectBuilder.Verify(); err != nil {
+			fmt.Println(err)
 			return nil
 		}
 
 		ctx.Context = context.WithValue(ctx.Context, LIBVIRT_COMMAND_CONNECT_BUILDER_CTX_KEY, connectBuilder)
+		fmt.Println(ctx.Context)
 		return nil
 	}
 
