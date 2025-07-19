@@ -1,7 +1,7 @@
 package dependencies
 
 import (
-	"github.com/nnurry/harmonia/internal/virtualization/service"
+	"github.com/nnurry/harmonia/internal/homevirt/service"
 	"libvirt.org/go/libvirt"
 )
 

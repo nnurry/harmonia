@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/nnurry/harmonia/cmd"
-	"github.com/nnurry/harmonia/internal/virtualization/builder"
-	"github.com/nnurry/harmonia/internal/virtualization/service"
+	"github.com/nnurry/harmonia/internal/homevirt/builder"
+	"github.com/nnurry/harmonia/internal/homevirt/service"
 	"github.com/urfave/cli/v2"
 )
 
