@@ -43,7 +43,7 @@ type LibvirtConnectBuilder struct {
 	builderFlagMap *types.BuilderFlagMap
 }
 
-func NewLibvirtConnectBuilder(useDefaultBuilderFlags bool, requiredFlags ...*ConnectUrlBuilderFlag) (*LibvirtConnectBuilder, error) {
+func NewLibvirtConnectBuilder(useDefaultBuilderFlags bool, requiredFlags []*ConnectUrlBuilderFlag) (*LibvirtConnectBuilder, error) {
 	castedRequiredFlags := []types.BuilderFlag{}
 
 	for _, flag := range requiredFlags {
