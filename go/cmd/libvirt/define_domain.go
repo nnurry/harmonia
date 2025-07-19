@@ -76,6 +76,7 @@ func (command *DefineLibvirtDomainCommand) Handler() func(ctx *cli.Context) erro
 		if err != nil {
 			return err
 		}
+		defer libvirtService.Cleanup()
 
 		baseDomain, err := libvirtService.GetDomainByName(baseDomainName)
 		if err != nil {
