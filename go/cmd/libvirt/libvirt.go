@@ -1,6 +1,8 @@
 package libvirt
 
 import (
+	"fmt"
+
 	"github.com/nnurry/harmonia/pkg/types"
 	"github.com/nnurry/harmonia/pkg/utils"
 	"github.com/urfave/cli/v2"
@@ -20,7 +22,7 @@ func (command *LibvirtCommand) Signature() string {
 
 func (command *LibvirtCommand) Handler() func(ctx *cli.Context) error {
 	return func(ctx *cli.Context) error {
-		return nil
+		return fmt.Errorf("use subcommands instead")
 	}
 }
 
