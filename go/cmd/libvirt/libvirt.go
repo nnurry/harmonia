@@ -28,12 +28,6 @@ func (command *LibvirtCommand) Signature() string {
 	return "libvirt"
 }
 
-func (command *LibvirtCommand) Handler() func(ctx *cli.Context) error {
-	return func(ctx *cli.Context) error {
-		return fmt.Errorf("use subcommands instead")
-	}
-}
-
 func (command *LibvirtCommand) Flags() []cli.Flag {
 	return []cli.Flag{
 		&cli.StringFlag{
@@ -63,6 +57,12 @@ func (command *LibvirtCommand) Flags() []cli.Flag {
 func (command *LibvirtCommand) Subcommands() []*cli.Command {
 	return []*cli.Command{
 		(&DefineLibvirtDomainCommand{}).Build(),
+	}
+}
+
+func (command *LibvirtCommand) Handler() func(ctx *cli.Context) error {
+	return func(ctx *cli.Context) error {
+		return fmt.Errorf("use subcommands instead")
 	}
 }
 

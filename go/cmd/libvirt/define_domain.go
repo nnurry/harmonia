@@ -18,18 +18,18 @@ func (command *DefineLibvirtDomainCommand) Signature() string {
 	return "define-domain"
 }
 
-func (command *DefineLibvirtDomainCommand) Handler() func(ctx *cli.Context) error {
-	return func(ctx *cli.Context) error {
-		return nil
-	}
-}
-
 func (command *DefineLibvirtDomainCommand) Flags() []cli.Flag {
 	return []cli.Flag{}
 }
 
 func (command *DefineLibvirtDomainCommand) Subcommands() []*cli.Command {
 	return []*cli.Command{}
+}
+
+func (command *DefineLibvirtDomainCommand) Handler() func(ctx *cli.Context) error {
+	return func(ctx *cli.Context) error {
+		return nil
+	}
 }
 
 func (command *DefineLibvirtDomainCommand) Build() *cli.Command {
