@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/nnurry/harmonia/cmd"
-	libvirt_cmd "github.com/nnurry/harmonia/cmd/libvirt"
+	libvirtcmd "github.com/nnurry/harmonia/cmd/libvirt"
 	"github.com/nnurry/harmonia/internal/homevirt/builder"
 	"github.com/nnurry/harmonia/internal/homevirt/service"
 	"github.com/urfave/cli/v2"
@@ -82,7 +82,7 @@ func main() {
 		Name:        "cli",
 		Description: "Commands for interacting with Harmonia's features directly.",
 		Subcommands: []*cli.Command{
-			cmd.GetCliCommand(libvirt_cmd.LIBVIRT_COMMAND),
+			cmd.GetCliCommand(libvirtcmd.LIBVIRT_COMMAND),
 		},
 	}
 
