@@ -18,6 +18,5 @@ func GetCliCommand(name types.InternalCommandName) *cli.Command {
 	if !ok {
 		panic(fmt.Errorf("command '%v' not defined", name))
 	}
-	command := constructor()
-	return utils.ConvertInternalCommandToCliCommand(command)
+	return constructor().Build()
 }
