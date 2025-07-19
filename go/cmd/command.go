@@ -5,7 +5,6 @@ import (
 
 	libvirtcmd "github.com/nnurry/harmonia/cmd/libvirt"
 	"github.com/nnurry/harmonia/pkg/types"
-	"github.com/nnurry/harmonia/pkg/utils"
 	"github.com/urfave/cli/v2"
 )
 
