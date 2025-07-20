@@ -63,7 +63,7 @@ func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain, requiredFlags []*Domain
 	}
 
 	newDomainXml := &libvirtxml.Domain{}
-	newDomainXml.Type = "domain"
+	newDomainXml.Type = "kvm"
 	newDomainXml.Metadata = baseDomainXml.Metadata
 	newDomainXml.OS = baseDomainXml.OS
 
