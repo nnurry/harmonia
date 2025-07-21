@@ -3,6 +3,7 @@ package builder
 import (
 	// "errors"
 
+	"fmt"
 	"net/url"
 
 	"github.com/nnurry/harmonia/pkg/types"
@@ -40,7 +41,21 @@ type LibvirtConnectBuilder struct {
 	path          string
 	keyfilePath   string
 
+	connectUrl string
+
 	builderFlagMap *types.BuilderFlagMap
+}
+
+func NewLibvirtConnectBuilderFromConnectUrl(connectUrl string) (*LibvirtConnectBuilder, error) {
+	if connectUrl == "" {
+		return nil, fmt.Errorf("empty connect URL")
+	}
+
+	builder := &LibvirtConnectBuilder{
+		connectUrl: connectUrl,
+	}
+
+	return builder, nil
 }
 
 func NewLibvirtConnectBuilder(requiredFlags []*ConnectUrlBuilderFlag, useDefaultBuilderFlags bool) (*LibvirtConnectBuilder, error) {
@@ -112,6 +127,10 @@ func (builder *LibvirtConnectBuilder) Verify() error {
 }
 
 func (builder *LibvirtConnectBuilder) BuildConnectURL() (string, error) {
+	if builder.connectUrl != "" {
+		return builder.connectUrl, nil
+	}
+
 	if err := builder.Verify(); err != nil {
 		return "", err
 	}

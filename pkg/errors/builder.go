@@ -14,5 +14,5 @@ type NotAllFlagsSatisfiedBuilderError struct {
 }
 
 func (e *NotAllFlagsSatisfiedBuilderError) Error() string {
-	return fmt.Sprintf("flag [%v] not satisfied", e.Flags)
+	return fmt.Sprintf("flag %v not satisfied", e.Flags)
 }

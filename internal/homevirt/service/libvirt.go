@@ -5,6 +5,10 @@ import (
 	"libvirt.org/go/libvirt"
 )
 
+const (
+	DEFAULT_LIBVIRT_QEMU_DISK_BASE_PATH = "/var/lib/libvirt/images"
+)
+
 type Libvirt struct {
 	conn *libvirt.Connect
 }
