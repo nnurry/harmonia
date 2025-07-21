@@ -120,7 +120,7 @@ func (command *DefineLibvirtDomainCommand) Handler() func(ctx *cli.Context) erro
 		}
 		domainBuilder = domainBuilder.WithQcow2DiskPath(command.qcow2DiskPath)
 
-		if command.ciIsoPath != "" {
+		if command.ciIsoPath == "" {
 			command.ciIsoPath = fmt.Sprintf(
 				"%s/%s-ci-data.iso",
 				service.DEFAULT_LIBVIRT_QEMU_DISK_BASE_PATH,
