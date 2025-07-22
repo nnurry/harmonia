@@ -50,13 +50,7 @@ func (command *RemoveLibvirtDomainCommand) Handler() func(ctx *cli.Context) erro
 		}
 		defer libvirtService.Cleanup()
 
-		domain, err := libvirtService.GetDomainByName(domainName)
-
-		if err != nil {
-			return err
-		}
-
-		err = domain.Undefine()
+		err = libvirtService.RemoveDomainByName(domainName)
 		if err != nil {
 			return fmt.Errorf("could not remove domain %v: %v", domainName, err)
 		}
