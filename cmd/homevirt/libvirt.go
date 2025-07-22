@@ -76,6 +76,7 @@ func (command *HomevirtCommand) Subcommands() []*cli.Command {
 	return []*cli.Command{
 		(&DefineLibvirtDomainCommand{}).Build(),
 		(&RemoveLibvirtDomainCommand{}).Build(),
+		(&ListLibvirtDomainsCommand{}).Build(),
 	}
 }
 
