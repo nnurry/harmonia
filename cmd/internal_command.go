@@ -3,13 +3,13 @@ package cmd
 import (
 	"fmt"
 
-	libvirtcmd "github.com/nnurry/harmonia/cmd/libvirt"
+	homevirtcmd "github.com/nnurry/harmonia/cmd/homevirt"
 	"github.com/nnurry/harmonia/pkg/types"
 	"github.com/urfave/cli/v2"
 )
 
 var commandConstructorMap = map[types.InternalCommandName]types.InternalCommandConstructor{
-	libvirtcmd.LIBVIRT_COMMAND: func() types.InternalCommand { return &libvirtcmd.LibvirtCommand{} },
+	homevirtcmd.HOMEVIRT_COMMAND: func() types.InternalCommand { return &homevirtcmd.HomevirtCommand{} },
 }
 
 func GetCliCommand(name types.InternalCommandName) *cli.Command {

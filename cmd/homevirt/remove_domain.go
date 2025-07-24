@@ -1,4 +1,4 @@
-package libvirt
+package homevirt
 
 import (
 	"fmt"
@@ -10,7 +10,6 @@ import (
 )
 
 type RemoveLibvirtDomainCommand struct {
-	domainName string
 }
 
 func (command *RemoveLibvirtDomainCommand) Description() string {
@@ -22,14 +21,7 @@ func (command *RemoveLibvirtDomainCommand) Signature() string {
 }
 
 func (command *RemoveLibvirtDomainCommand) Flags() []cli.Flag {
-	return []cli.Flag{
-		&cli.StringFlag{
-			Name:        "name",
-			Required:    true,
-			Usage:       "Set name of domain to be deleted. Required, sadly",
-			Destination: &command.domainName,
-		},
-	}
+	return []cli.Flag{}
 }
 
 func (command *RemoveLibvirtDomainCommand) Subcommands() []*cli.Command {
@@ -38,7 +30,16 @@ func (command *RemoveLibvirtDomainCommand) Subcommands() []*cli.Command {
 
 func (command *RemoveLibvirtDomainCommand) Handler() func(ctx *cli.Context) error {
 	return func(ctx *cli.Context) error {
-		connectBuilder, ok := ctx.Context.Value(LIBVIRT_COMMAND_CONNECT_BUILDER_CTX_KEY).(*builder.LibvirtConnectBuilder)
+		if ctx.NArg() < 1 {
+			return fmt.Errorf("missing <domain name>")
+		}
+
+		domainName := ctx.Args().First()
+		if domainName == "" {
+			return fmt.Errorf("<domain name> is empty")
+		}
+
+		connectBuilder, ok := ctx.Context.Value(HOMEVIRT_COMMAND_CONNECT_BUILDER_CTX_KEY).(*builder.LibvirtConnectBuilder)
 		if !ok {
 			return fmt.Errorf("could not retrieve Libvirt connect builder from context")
 		}
@@ -49,15 +50,9 @@ func (command *RemoveLibvirtDomainCommand) Handler() func(ctx *cli.Context) erro
 		}
 		defer libvirtService.Cleanup()
 
-		domain, err := libvirtService.GetDomainByName(command.domainName)
-
+		err = libvirtService.RemoveDomainByName(domainName)
 		if err != nil {
-			return err
-		}
-
-		err = domain.Undefine()
-		if err != nil {
-			return fmt.Errorf("could not remove domain %v: %v", command.domainName, err)
+			return fmt.Errorf("could not remove domain %v: %v", domainName, err)
 		}
 
 		return nil

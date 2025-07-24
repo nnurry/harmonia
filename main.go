@@ -1,88 +1,20 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
 	"github.com/nnurry/harmonia/cmd"
-	libvirtcmd "github.com/nnurry/harmonia/cmd/libvirt"
-	"github.com/nnurry/harmonia/internal/homevirt/builder"
-	"github.com/nnurry/harmonia/internal/homevirt/service"
+	homevirtcmd "github.com/nnurry/harmonia/cmd/homevirt"
 	"github.com/urfave/cli/v2"
 )
-
-func test() {
-	fmt.Println("Opening conn")
-
-	// https://libvirt.org/uri.html#keyfile-parameter
-	connBuilder, err := builder.NewLibvirtConnectBuilder([]*builder.ConnectUrlBuilderFlag{}, true)
-	if err != nil {
-		panic(err)
-	}
-	connBuilder = connBuilder.
-		WithTransportType("ssh").
-		WithUser("nnurry").
-		WithHost("xeon-opensuse").
-		WithKeyfilePath("/develop/.host-ssh/xeon-opensuse")
-
-	libvirtService, err := service.NewLibvirtFromConnectBuilder(connBuilder)
-
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("Opened conn")
-
-	// TODO: make these deps useful
-	baseDomainName := "leap-base-VM-latest-test"
-	newDomainName := "leap-base-VM-latest-test-new"
-
-	qcow2DiskPath := "/var/lib/libvirt/images/leap-base-VM-latest-test-new.qcow2"
-	cloudInitDiskPath := "/var/lib/libvirt/images/leap-base-VM-latest-test-new.iso"
-
-	baseDomain, err := libvirtService.GetDomainByName(baseDomainName)
-	if err != nil {
-		panic(err)
-	}
-
-	numOfCpus := 4
-	memory := uint(8 * 1024 * 1024)
-	newDomainBuilder, err := builder.NewLibvirtDomainBuilder(baseDomain, []*builder.DomainBuilderFlag{}, true)
-	if err != nil {
-		panic(err)
-	}
-
-	newDomainBuilder = newDomainBuilder.
-		WithDomainName(newDomainName).
-		WithNumOfCpus(numOfCpus).
-		WithMemory(memory, "KiB").
-		WithCiDiskPath(cloudInitDiskPath).
-		WithQcow2DiskPath(qcow2DiskPath)
-
-	dom, err := libvirtService.DefineDomainFromBuilder(newDomainBuilder)
-	if err != nil {
-		panic(err)
-	}
-
-	err = dom.Create()
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("VM %v successfully defined\n", newDomainName)
-
-	fmt.Println("Closing conn")
-	libvirtService.Cleanup()
-	fmt.Println("Closed conn")
-}
 
 func main() {
 	cliCommands := &cli.Command{
 		Name:        "cli",
 		Description: "Commands for interacting with Harmonia's features directly.",
 		Subcommands: []*cli.Command{
-			cmd.GetCliCommand(libvirtcmd.LIBVIRT_COMMAND),
+			cmd.GetCliCommand(homevirtcmd.HOMEVIRT_COMMAND),
 		},
 	}
 
