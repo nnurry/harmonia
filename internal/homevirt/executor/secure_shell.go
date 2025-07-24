@@ -1,14 +1,8 @@
-package types
+package executor
 
 import (
-	"os/exec"
-
 	"golang.org/x/crypto/ssh"
 )
-
-type ShellExecutor interface {
-	Exec(string) error
-}
 
 type SecureShellExecutor struct {
 	client  *ssh.Client
@@ -34,23 +28,6 @@ func (executor *SecureShellExecutor) CreateNewSession() error {
 }
 
 func (executor *SecureShellExecutor) Exec(command string) error {
-	session, err := executor.client.NewSession()
-	if err != nil {
-		return err
-	}
-	err = session.Run(command)
-	return err
-}
-
-type LocalShellExecutor struct {
-}
-
-func NewLocalShellExecutor() (*LocalShellExecutor, error) {
-	return &LocalShellExecutor{}, nil
-}
-
-func (executor *LocalShellExecutor) Exec(command string) error {
-	cmd := exec.Command(command)
-	err := cmd.Run()
+	err := executor.session.Run(command)
 	return err
 }
