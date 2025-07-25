@@ -1,6 +1,7 @@
 package homevirt
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/nnurry/harmonia/internal/homevirt/builder"
@@ -8,9 +9,67 @@ import (
 	"github.com/nnurry/harmonia/pkg/types"
 	"github.com/nnurry/harmonia/pkg/utils"
 	"github.com/urfave/cli/v2"
+	"libvirt.org/go/libvirt"
 )
 
 const LIST_LIBVIRT_DOMAIN_COMMAND = types.InternalCommandName("list Libvirt domains command")
+
+type DomainMetadata struct {
+	Name  string
+	UUID  string
+	State string
+}
+
+func NewDomainMetadata(domain libvirt.Domain) (*DomainMetadata, error) {
+	domainName, err := domain.GetName()
+	if err != nil {
+		return nil, fmt.Errorf("fail to get name of domain: %v", err)
+	}
+
+	domainUuid, err := domain.GetUUIDString()
+	if err != nil {
+		return nil, fmt.Errorf("fail to get uuid of domain %v: %v", domainName, err)
+	}
+
+	domainState, reason, err := domain.GetState()
+	if err != nil {
+		return nil, fmt.Errorf("fail to get name of domain %v: %v (%v)", domainName, err, reason)
+	}
+
+	metadata := &DomainMetadata{
+		Name: domainName,
+		UUID: domainUuid,
+	}
+	switch domainState {
+	case libvirt.DOMAIN_RUNNING:
+		metadata.State = "running"
+	case libvirt.DOMAIN_SHUTOFF:
+		metadata.State = "shutoff"
+	case libvirt.DOMAIN_SHUTDOWN:
+		metadata.State = "shutdown"
+	case libvirt.DOMAIN_CRASHED:
+		metadata.State = "crashed"
+	case libvirt.DOMAIN_NOSTATE:
+		metadata.State = "nostate"
+	case libvirt.DOMAIN_PAUSED:
+		metadata.State = "paused"
+	default:
+		metadata.State = fmt.Sprintf("other (code=%v)", domainState)
+	}
+	return metadata, nil
+}
+
+func (metadata *DomainMetadata) ToString(pos int) string {
+	buf := bytes.NewBufferString("")
+	if pos > -1 {
+		fmt.Fprintf(buf, "%v)	name: %v \n", pos, metadata.Name)
+	} else {
+		fmt.Fprintf(buf, "		name: %v \n", metadata.Name)
+	}
+	fmt.Fprintf(buf, "	uuid: %v\n", metadata.UUID)
+	fmt.Fprintf(buf, "	state: %v\n", metadata.State)
+	return buf.String()
+}
 
 type ListLibvirtDomainsCommand struct {
 	isListAll bool
@@ -55,14 +114,14 @@ func (command *ListLibvirtDomainsCommand) Handler() func(ctx *cli.Context) error
 		if err != nil {
 			return fmt.Errorf("could not list domains: %v", err)
 		}
-
 		fmt.Println("List of domains:")
-
 		for i, domain := range domains {
-			domainName, _ := domain.GetName()
-			domainUuid, _ := domain.GetUUIDString()
-			fmt.Printf("%v)	name: %v\n", i+1, domainName)
-			fmt.Printf("	uuid: %v\n", domainUuid)
+			metadata, err := NewDomainMetadata(domain)
+			if err != nil {
+				fmt.Println("can't fetch metadata of domain -> ", err)
+				continue
+			}
+			fmt.Println(metadata.ToString(i + 1))
 		}
 
 		return nil

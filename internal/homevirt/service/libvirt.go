@@ -57,6 +57,26 @@ func (service *Libvirt) RemoveDomainByName(name string) error {
 	return domain.Undefine()
 }
 
+func (service *Libvirt) StartDomainWithName(name string) error {
+	domain, err := service.GetDomainByName(name)
+
+	if err != nil {
+		return err
+	}
+
+	return domain.Create()
+}
+
+func (service *Libvirt) StopDomainWithName(name string) error {
+	domain, err := service.GetDomainByName(name)
+
+	if err != nil {
+		return err
+	}
+
+	return domain.Shutdown()
+}
+
 func (service *Libvirt) ListDomains(includeInactive bool) ([]libvirt.Domain, error) {
 	flags := libvirt.CONNECT_LIST_DOMAINS_ACTIVE
 	if includeInactive {
