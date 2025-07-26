@@ -1,4 +1,4 @@
-package homevirt
+package libvirt
 
 import (
 	"context"
@@ -12,36 +12,36 @@ import (
 )
 
 const (
-	HOMEVIRT_COMMAND = types.InternalCommandName("Homevirt command")
+	LIBVIRT_COMMAND = types.InternalCommandName("Libvirt command")
 )
 
 const (
-	HOMEVIRT_COMMAND_CONNECT_BUILDER_CTX_KEY = types.InternalCommandCtxKey("connectBuilder")
+	LIBVIRT_COMMAND_CONNECT_BUILDER_CTX_KEY = types.InternalCommandCtxKey("connectBuilder")
 )
 
-type HomevirtCommand struct {
+type LibvirtCommand struct {
 	connectUrl string
 }
 
-func (command *HomevirtCommand) Description() string {
-	return "Homevirt command entrypoint"
+func (command *LibvirtCommand) Description() string {
+	return "Libvirt command entrypoint"
 }
 
-func (command *HomevirtCommand) Signature() string {
-	return "homevirt"
+func (command *LibvirtCommand) Signature() string {
+	return "libvirt"
 }
 
-func (command *HomevirtCommand) Flags() []cli.Flag {
+func (command *LibvirtCommand) Flags() []cli.Flag {
 	return []cli.Flag{
 		&cli.StringFlag{
 			Name:        "connect-url",
-			Usage:       "Set Homevirt connect URL. Using this flag would discard all other connect flags",
+			Usage:       "Set Libvirt connect URL. Using this flag would discard all other connect flags",
 			Destination: &command.connectUrl,
 		},
 	}
 }
 
-func (command *HomevirtCommand) Subcommands() []*cli.Command {
+func (command *LibvirtCommand) Subcommands() []*cli.Command {
 	return []*cli.Command{
 		(&DefineLibvirtDomainCommand{}).Build(),
 		(&RemoveLibvirtDomainCommand{}).Build(),
@@ -51,13 +51,13 @@ func (command *HomevirtCommand) Subcommands() []*cli.Command {
 	}
 }
 
-func (command *HomevirtCommand) Handler() func(ctx *cli.Context) error {
+func (command *LibvirtCommand) Handler() func(ctx *cli.Context) error {
 	return func(ctx *cli.Context) error {
 		return fmt.Errorf("use subcommands instead")
 	}
 }
 
-func (command *HomevirtCommand) Build() *cli.Command {
+func (command *LibvirtCommand) Build() *cli.Command {
 	cliCommand := utils.ConvertInternalCommandToCliCommand(command)
 	cliCommand.Before = func(ctx *cli.Context) error {
 		connectBuilder, err := builder.NewLibvirtConnectBuilderFromConnectUrl(command.connectUrl)
@@ -68,7 +68,7 @@ func (command *HomevirtCommand) Build() *cli.Command {
 
 		log.Printf("Setting Libvirt connection with URL = %v\n", command.connectUrl)
 
-		ctx.Context = context.WithValue(ctx.Context, HOMEVIRT_COMMAND_CONNECT_BUILDER_CTX_KEY, connectBuilder)
+		ctx.Context = context.WithValue(ctx.Context, LIBVIRT_COMMAND_CONNECT_BUILDER_CTX_KEY, connectBuilder)
 		return nil
 
 	}

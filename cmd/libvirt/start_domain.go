@@ -1,4 +1,4 @@
-package homevirt
+package libvirt
 
 import (
 	"fmt"
@@ -9,26 +9,26 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-type RemoveLibvirtDomainCommand struct {
+type StartLibvirtDomainCommand struct {
 }
 
-func (command *RemoveLibvirtDomainCommand) Description() string {
-	return "Remove a domain in Libvirt"
+func (command *StartLibvirtDomainCommand) Description() string {
+	return "Start a domain in Libvirt"
 }
 
-func (command *RemoveLibvirtDomainCommand) Signature() string {
-	return "remove-domain"
+func (command *StartLibvirtDomainCommand) Signature() string {
+	return "start-domain"
 }
 
-func (command *RemoveLibvirtDomainCommand) Flags() []cli.Flag {
+func (command *StartLibvirtDomainCommand) Flags() []cli.Flag {
 	return []cli.Flag{}
 }
 
-func (command *RemoveLibvirtDomainCommand) Subcommands() []*cli.Command {
+func (command *StartLibvirtDomainCommand) Subcommands() []*cli.Command {
 	return []*cli.Command{}
 }
 
-func (command *RemoveLibvirtDomainCommand) Handler() func(ctx *cli.Context) error {
+func (command *StartLibvirtDomainCommand) Handler() func(ctx *cli.Context) error {
 	return func(ctx *cli.Context) error {
 		if ctx.NArg() < 1 {
 			return fmt.Errorf("missing <domain name>")
@@ -39,7 +39,7 @@ func (command *RemoveLibvirtDomainCommand) Handler() func(ctx *cli.Context) erro
 			return fmt.Errorf("<domain name> is empty")
 		}
 
-		connectBuilder, ok := ctx.Context.Value(HOMEVIRT_COMMAND_CONNECT_BUILDER_CTX_KEY).(*builder.LibvirtConnectBuilder)
+		connectBuilder, ok := ctx.Context.Value(LIBVIRT_COMMAND_CONNECT_BUILDER_CTX_KEY).(*builder.LibvirtConnectBuilder)
 		if !ok {
 			return fmt.Errorf("could not retrieve Libvirt connect builder from context")
 		}
@@ -50,15 +50,15 @@ func (command *RemoveLibvirtDomainCommand) Handler() func(ctx *cli.Context) erro
 		}
 		defer libvirtService.Cleanup()
 
-		err = libvirtService.RemoveDomainByName(domainName)
+		err = libvirtService.StartDomainWithName(domainName)
 		if err != nil {
-			return fmt.Errorf("could not remove domain %v: %v", domainName, err)
+			return fmt.Errorf("could not start domain %v: %v", domainName, err)
 		}
 
 		return nil
 	}
 }
 
-func (command *RemoveLibvirtDomainCommand) Build() *cli.Command {
+func (command *StartLibvirtDomainCommand) Build() *cli.Command {
 	return utils.ConvertInternalCommandToCliCommand(command)
 }

@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/nnurry/harmonia/cmd"
-	homevirtcmd "github.com/nnurry/harmonia/cmd/homevirt"
+	libvirtcmd "github.com/nnurry/harmonia/cmd/libvirt"
 	"github.com/urfave/cli/v2"
 )
 
@@ -14,7 +14,7 @@ func main() {
 		Name:        "cli",
 		Description: "Commands for interacting with Harmonia's features directly.",
 		Subcommands: []*cli.Command{
-			cmd.GetCliCommand(homevirtcmd.HOMEVIRT_COMMAND),
+			cmd.GetCliCommand(libvirtcmd.LIBVIRT_COMMAND),
 		},
 	}
 

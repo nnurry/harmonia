@@ -1,4 +1,4 @@
-package homevirt
+package libvirt
 
 import (
 	"bytes"
@@ -99,7 +99,7 @@ func (command *ListLibvirtDomainsCommand) Subcommands() []*cli.Command {
 
 func (command *ListLibvirtDomainsCommand) Handler() func(ctx *cli.Context) error {
 	return func(ctx *cli.Context) error {
-		connectBuilder, ok := ctx.Context.Value(HOMEVIRT_COMMAND_CONNECT_BUILDER_CTX_KEY).(*builder.LibvirtConnectBuilder)
+		connectBuilder, ok := ctx.Context.Value(LIBVIRT_COMMAND_CONNECT_BUILDER_CTX_KEY).(*builder.LibvirtConnectBuilder)
 		if !ok {
 			return fmt.Errorf("could not retrieve Libvirt connect builder from context")
 		}
