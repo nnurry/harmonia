@@ -2,6 +2,7 @@ package processor
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os/exec"
 	"strings"
@@ -10,10 +11,19 @@ import (
 )
 
 type ShellProcessor interface {
-	Execute(context.Context, string, ...string)
+	Name() string
+	Execute(context.Context, io.Writer, io.Writer, string, ...string) error
 }
 
 type LocalShellProcessor struct {
+}
+
+func NewLocalShellProcessor() *LocalShellProcessor {
+	return &LocalShellProcessor{}
+}
+
+func (processor *LocalShellProcessor) Name() string {
+	return "local-shell"
 }
 
 func (processor *LocalShellProcessor) Execute(
@@ -22,10 +32,12 @@ func (processor *LocalShellProcessor) Execute(
 	command string, args ...string,
 ) error {
 	cmd := exec.CommandContext(ctx, command, args...)
-	err := cmd.Start()
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
+	err := cmd.Run()
 
 	if err != nil {
-		return err
+		return fmt.Errorf("cmd.Run() error: %v", err)
 	}
 	return nil
 }
@@ -38,6 +50,10 @@ func NewSecureShellProcessor(client *ssh.Client) *SecureShellProcessor {
 	return &SecureShellProcessor{client: client}
 }
 
+func (processor *SecureShellProcessor) Name() string {
+	return "secure-shell"
+}
+
 func (processor *SecureShellProcessor) Execute(
 	ctx context.Context,
 	stdout, stderr io.Writer,
@@ -45,29 +61,28 @@ func (processor *SecureShellProcessor) Execute(
 ) error {
 	session, err := processor.client.NewSession()
 	if err != nil {
-		return err
+		return fmt.Errorf("client.NewSession() error: %v", err)
 	}
 
 	defer session.Close()
-
-	session.Stdout = stdout
-	session.Stderr = stderr
 
 	commandParts := []string{command}
 	commandParts = append(commandParts, args...)
 
 	command = strings.Join(commandParts, " ")
 
-	err = session.Start(command)
+	session.Stdout = stdout
+	session.Stderr = stderr
+
+	err = session.Run(command)
 	if err != nil {
-		return err
+		return fmt.Errorf("session.Run() error: %v", err)
 	}
 
-	<-ctx.Done()
-	err = session.Signal(ssh.SIGTERM)
+	err = session.Close()
 
-	if err != nil {
-		return err
+	if err != nil && err != io.EOF {
+		return fmt.Errorf("session.Close() error: %v", err)
 	}
 
 	return nil
