@@ -43,7 +43,7 @@ func NewSSH(config config.SSH) (*SSH, error) {
 
 	client, err := ssh.Dial(dialNetwork, dialAddress.String(), &clientConfig)
 	if err != nil {
-		return nil, fmt.Errorf("could not create ssh client")
+		return nil, fmt.Errorf("could not create ssh client: %v", err)
 	}
 
 	service.client = client
