@@ -8,27 +8,27 @@ import (
 )
 
 type NetworkConfig struct {
-	Network network `yaml:"network"`
+	Network Network `json:"network"`
 }
 
-type network struct {
-	Version   int      `yaml:"version"`
-	Ethernets ethernet `yaml:"ethernets"`
+type Network struct {
+	Version   int      `json:"version"`
+	Ethernets Ethernet `json:"ethernets"`
 }
 
-type ethernet struct {
-	Eth0 eth0 `yaml:"eth0"`
+type Ethernet struct {
+	Eth0 Eth0 `json:"eth0"`
 }
 
-type eth0 struct {
-	Dhcp4              bool         `yaml:"dhcp4"`
-	IPv4Addresses      []string     `yaml:"addresses"`
-	IPv4GatewayAddress string       `yaml:"gateway4"`
-	Nameservers        []nameserver `yaml:"nameservers"`
+type Eth0 struct {
+	Dhcp4              bool         `json:"dhcp4"`
+	IPv4Addresses      []string     `json:"addresses"`
+	IPv4GatewayAddress string       `json:"gateway4"`
+	Nameservers        []Nameserver `json:"nameservers"`
 }
 
-type nameserver struct {
-	Addresses []string `yaml:"addresses"`
+type Nameserver struct {
+	Addresses []string `json:"addresses"`
 }
 
 func (nc NetworkConfig) Serialize() ([]byte, error) {
