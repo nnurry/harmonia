@@ -3,8 +3,8 @@ package libvirt
 import (
 	"fmt"
 
-	"github.com/nnurry/harmonia/internal/homevirt/builder"
-	"github.com/nnurry/harmonia/internal/homevirt/service"
+	"github.com/nnurry/harmonia/internal/builder"
+	"github.com/nnurry/harmonia/internal/service"
 	"github.com/nnurry/harmonia/pkg/utils"
 	"github.com/urfave/cli/v2"
 )

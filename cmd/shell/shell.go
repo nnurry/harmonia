@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/nnurry/harmonia/internal/homevirt/config"
-	"github.com/nnurry/harmonia/internal/homevirt/processor"
-	"github.com/nnurry/harmonia/internal/homevirt/service"
+	"github.com/nnurry/harmonia/internal/config"
+	"github.com/nnurry/harmonia/internal/processor"
+	"github.com/nnurry/harmonia/internal/service"
 	"github.com/nnurry/harmonia/pkg/types"
 	"github.com/nnurry/harmonia/pkg/utils"
 	"github.com/urfave/cli/v2"

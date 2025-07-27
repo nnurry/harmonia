@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/nnurry/harmonia/internal/homevirt/config"
+	"github.com/nnurry/harmonia/internal/config"
 	"golang.org/x/crypto/ssh"
 )
 
