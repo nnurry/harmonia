@@ -1,9 +1,12 @@
 package contract
 
-type CloneVirtualMachineRequest struct {
+type BuildVirtualMachineConfig struct {
 	GeneralVMConfig `json:",inline"`
 	UserVMConfig    `json:",inline"`
 	NetworkVMConfig `json:",inline"`
+
+	CloudInitISOPath string `json:"cloud_init_iso_path"`
+	QCOW2FilePath    string `json:"qcow2_file_path"`
 }
 
 type GeneralVMConfig struct {
@@ -19,7 +22,7 @@ type UserVMConfig struct {
 	User                  string   `json:"user"`
 	AuthorizedKeyPaths    []string `json:"authorized_key_paths"`
 	AuthorizedKeyContents []string `json:"authorized_key_contents"`
-	DisableRootPassword   bool     `json:"disable_root_pw"`
+	DisableRootPassword   bool     `json:"disable_root_pw,omitempty"`
 }
 
 type NetworkVMConfig struct {
@@ -27,4 +30,8 @@ type NetworkVMConfig struct {
 	IPv4GatewayAddress string   `json:"gateway_address"`
 	MacAddress         string   `json:"mac_address"`
 	Nameservers        []string `json:"nameservers"`
+}
+
+type BuildVirtualMachineRequest struct {
+	BuildVirtualMachineConfig `json:",inline"`
 }

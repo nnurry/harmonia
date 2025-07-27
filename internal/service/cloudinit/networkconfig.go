@@ -8,27 +8,27 @@ import (
 )
 
 type NetworkConfig struct {
-	Network Network `json:"network"`
+	Network Network `yaml:"network"`
 }
 
 type Network struct {
-	Version   int      `json:"version"`
-	Ethernets Ethernet `json:"ethernets"`
+	Version   int      `yaml:"version"`
+	Ethernets Ethernet `yaml:"ethernets"`
 }
 
 type Ethernet struct {
-	Eth0 Eth0 `json:"eth0"`
+	Eth0 Eth0 `yaml:"eth0"`
 }
 
 type Eth0 struct {
-	Dhcp4              bool         `json:"dhcp4"`
-	IPv4Addresses      []string     `json:"addresses"`
-	IPv4GatewayAddress string       `json:"gateway4"`
-	Nameservers        []Nameserver `json:"nameservers"`
+	Dhcp4              bool         `yaml:"dhcp4"`
+	IPv4Addresses      []string     `yaml:"addresses"`
+	IPv4GatewayAddress string       `yaml:"gateway4"`
+	Nameservers        []Nameserver `yaml:"nameservers"`
 }
 
 type Nameserver struct {
-	Addresses []string `json:"addresses"`
+	Addresses []string `yaml:"addresses"`
 }
 
 func (nc NetworkConfig) FileName() string {
