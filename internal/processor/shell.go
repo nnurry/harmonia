@@ -10,23 +10,23 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-type ShellProcessor interface {
+type Shell interface {
 	Name() string
 	Execute(context.Context, io.Writer, io.Writer, string, ...string) error
 }
 
-type LocalShellProcessor struct {
+type LocalShell struct {
 }
 
-func NewLocalShellProcessor() *LocalShellProcessor {
-	return &LocalShellProcessor{}
+func NewLocalShell() *LocalShell {
+	return &LocalShell{}
 }
 
-func (processor *LocalShellProcessor) Name() string {
+func (processor *LocalShell) Name() string {
 	return "local-shell"
 }
 
-func (processor *LocalShellProcessor) Execute(
+func (processor *LocalShell) Execute(
 	ctx context.Context,
 	stdout, stderr io.Writer,
 	command string, args ...string,
@@ -42,19 +42,19 @@ func (processor *LocalShellProcessor) Execute(
 	return nil
 }
 
-type SecureShellProcessor struct {
+type SecureShell struct {
 	client *ssh.Client
 }
 
-func NewSecureShellProcessor(client *ssh.Client) *SecureShellProcessor {
-	return &SecureShellProcessor{client: client}
+func NewSecureShell(client *ssh.Client) *SecureShell {
+	return &SecureShell{client: client}
 }
 
-func (processor *SecureShellProcessor) Name() string {
+func (processor *SecureShell) Name() string {
 	return "secure-shell"
 }
 
-func (processor *SecureShellProcessor) Execute(
+func (processor *SecureShell) Execute(
 	ctx context.Context,
 	stdout, stderr io.Writer,
 	command string, args ...string,

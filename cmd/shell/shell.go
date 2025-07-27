@@ -18,9 +18,8 @@ const (
 )
 
 type ShellCommand struct {
-	isLocal    bool
-	usePrivkey bool
-	cfg        config.SSH
+	isLocal bool
+	cfg     config.SSH
 }
 
 func (command *ShellCommand) Description() string {
@@ -77,17 +76,17 @@ func (command *ShellCommand) Handler() func(ctx *cli.Context) error {
 			return fmt.Errorf("no entrypoint")
 		}
 
-		var shellProcessor processor.ShellProcessor
+		var shellProcessor processor.Shell
 
 		if command.isLocal {
-			shellProcessor = processor.NewLocalShellProcessor()
+			shellProcessor = processor.NewLocalShell()
 		} else {
 			sshService, err := service.NewSSH(command.cfg)
 			if err != nil {
 				return fmt.Errorf("can't init ssh service: %v", err)
 			}
 
-			shellProcessor = processor.NewSecureShellProcessor(sshService.Client())
+			shellProcessor = processor.NewSecureShell(sshService.Client())
 		}
 
 		argsArray := ctx.Args().Slice()
