@@ -27,7 +27,7 @@ type privateKeyAuthSSHConfig struct {
 	Passphrase     string
 }
 
-func (cfg SSHConfig) ParsePassword() (ssh.AuthMethod, error) {
+func (cfg SSHConfig) ParsePasswordAuth() (ssh.AuthMethod, error) {
 	if cfg.PasswordAuth.Password == "" {
 		return nil, fmt.Errorf("empty password")
 	}

@@ -19,19 +19,20 @@ func NewSSH(config SSHConfig) (*SSH, error) {
 		HostKeyCallback: config.HostKeyCallback,
 	}
 
-	var authMethod ssh.AuthMethod
-	var privkeyAuthParseErr, passwordAuthParseErr error
-
-	authMethod, privkeyAuthParseErr = config.ParsePrivateKeyAuth()
-	if authMethod == nil {
-		authMethod, passwordAuthParseErr = config.ParsePassword()
-	}
+	// let's parse both and see what we got
+	privkeyAuthMethod, privkeyAuthParseErr := config.ParsePrivateKeyAuth()
+	passwordAuthMethod, passwordAuthParseErr := config.ParsePasswordAuth()
 
 	if privkeyAuthParseErr != nil && passwordAuthParseErr != nil {
 		return nil, fmt.Errorf("privkey='%v' + password='%v'", privkeyAuthParseErr, passwordAuthParseErr)
 	}
 
-	clientConfig.Auth = append(clientConfig.Auth, authMethod)
+	// prioritize privkey auth over password auth
+	if privkeyAuthMethod != nil {
+		clientConfig.Auth = append(clientConfig.Auth, privkeyAuthMethod)
+	} else {
+		clientConfig.Auth = append(clientConfig.Auth, passwordAuthMethod)
+	}
 
 	dialNetwork := "tcp"
 	dialAddress := bytes.NewBufferString(config.Host)
