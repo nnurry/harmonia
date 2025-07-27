@@ -5,11 +5,16 @@ go 1.24.2
 require libvirt.org/go/libvirt v1.11005.0
 
 require (
+	github.com/rs/zerolog v1.34.0
 	github.com/urfave/cli/v2 v2.27.7
 	libvirt.org/go/libvirtxml v1.11005.0
 )
 
-require golang.org/x/sys v0.34.0 // indirect
+require (
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
+	golang.org/x/sys v0.34.0 // indirect
+)
 
 require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect

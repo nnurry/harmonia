@@ -8,6 +8,7 @@ import (
 	"github.com/nnurry/harmonia/internal/processor"
 	"github.com/nnurry/harmonia/pkg/types"
 	"github.com/nnurry/harmonia/pkg/utils"
+	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/crypto/ssh"
 )
@@ -90,7 +91,7 @@ func (command *ShellCommand) Handler() func(ctx *cli.Context) error {
 		}
 
 		argsArray := ctx.Args().Slice()
-		fmt.Printf("executing shell command with %v processor\n", shellProcessor.Name())
+		log.Info().Msgf("executing shell command with %v processor\n", shellProcessor.Name())
 		err := shellProcessor.Execute(ctx.Context, os.Stdout, os.Stderr, argsArray[0], argsArray[1:]...)
 
 		if err != nil {

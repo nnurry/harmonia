@@ -1,16 +1,18 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/nnurry/harmonia/cmd"
 	libvirtcmd "github.com/nnurry/harmonia/cmd/libvirt"
 	shellcmd "github.com/nnurry/harmonia/cmd/shell"
+	"github.com/nnurry/harmonia/internal/logger"
+	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 )
 
 func main() {
+	logger.Init()
 	cliCommands := &cli.Command{
 		Name:        "cli",
 		Description: "Commands for interacting with Harmonia's features directly.",
@@ -28,7 +30,7 @@ func main() {
 				Name:        "start",
 				Description: "Start the Harmonia API server",
 				Action: func(c *cli.Context) error {
-					log.Println("Starting Harmonia API server...")
+					log.Info().Msg("Starting Harmonia API server...")
 					return nil
 				},
 			},

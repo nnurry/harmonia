@@ -3,11 +3,11 @@ package libvirt
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/nnurry/harmonia/internal/builder"
 	"github.com/nnurry/harmonia/pkg/types"
 	"github.com/nnurry/harmonia/pkg/utils"
+	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 )
 
@@ -66,7 +66,7 @@ func (command *LibvirtCommand) Build() *cli.Command {
 			return err
 		}
 
-		log.Printf("Setting Libvirt connection with URL = %v\n", command.connectUrl)
+		log.Info().Msgf("Setting Libvirt connection with URL = %v\n", command.connectUrl)
 
 		ctx.Context = context.WithValue(ctx.Context, LIBVIRT_COMMAND_CONNECT_BUILDER_CTX_KEY, connectBuilder)
 		return nil
