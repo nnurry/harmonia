@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/nnurry/harmonia/internal/builder"
+	"github.com/nnurry/harmonia/internal/connection"
 	"libvirt.org/go/libvirt"
 )
 
@@ -10,41 +11,23 @@ const (
 )
 
 type Libvirt struct {
-	conn *libvirt.Connect
+	*connection.Libvirt
 }
 
-func NewLibvirt(conn *libvirt.Connect) (*Libvirt, error) {
-	return &Libvirt{conn: conn}, nil
-}
-
-func NewLibvirtFromConnectUrl(connectUrl string) (*Libvirt, error) {
-	conn, err := libvirt.NewConnect(connectUrl)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewLibvirt(conn)
-}
-
-func NewLibvirtFromConnectBuilder(connectBuilder *builder.LibvirtConnectBuilder) (*Libvirt, error) {
-	conn, err := connectBuilder.Build()
-	if err != nil {
-		return nil, err
-	}
-
-	return NewLibvirt(conn)
+func NewLibvirt(connection *connection.Libvirt) (*Libvirt, error) {
+	return &Libvirt{connection}, nil
 }
 
 func (service *Libvirt) GetDomainByName(name string) (*libvirt.Domain, error) {
-	return service.conn.LookupDomainByName(name)
+	return service.Connect().LookupDomainByName(name)
 }
 
 func (service *Libvirt) DefineDomainFromXMLString(xmlString string) (*libvirt.Domain, error) {
-	return service.conn.DomainDefineXML(xmlString)
+	return service.Connect().DomainDefineXML(xmlString)
 }
 
 func (service *Libvirt) DefineDomainFromBuilder(domainBuilder *builder.LibvirtDomainBuilder) (*libvirt.Domain, error) {
-	return domainBuilder.Build(service.conn)
+	return domainBuilder.Build(service.Connect())
 }
 
 func (service *Libvirt) RemoveDomainByName(name string) error {
@@ -82,10 +65,5 @@ func (service *Libvirt) ListDomains(includeInactive bool) ([]libvirt.Domain, err
 	if includeInactive {
 		flags |= libvirt.CONNECT_LIST_DOMAINS_INACTIVE
 	}
-	return service.conn.ListAllDomains(flags)
-}
-
-func (service *Libvirt) Cleanup() error {
-	_, err := service.conn.Close()
-	return err
+	return service.Connect().ListAllDomains(flags)
 }

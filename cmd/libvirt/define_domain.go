@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/nnurry/harmonia/internal/builder"
+	"github.com/nnurry/harmonia/internal/connection"
 	"github.com/nnurry/harmonia/internal/service"
 	"github.com/nnurry/harmonia/pkg/types"
 	"github.com/nnurry/harmonia/pkg/utils"
@@ -76,12 +77,12 @@ func (command *DefineLibvirtDomainCommand) Handler() func(ctx *cli.Context) erro
 			return fmt.Errorf("<base domain name> is empty")
 		}
 
-		connectBuilder, ok := ctx.Context.Value(LIBVIRT_COMMAND_CONNECT_BUILDER_CTX_KEY).(*builder.LibvirtConnectBuilder)
+		libvirtInternalConnection, ok := ctx.Context.Value(LIBVIRT_INTERNAL_CONNECTION_CTX_KEY).(*connection.Libvirt)
 		if !ok {
-			return fmt.Errorf("could not retrieve Libvirt connect builder from context")
+			return fmt.Errorf("could not retrieve Libvirt internal connection from context")
 		}
 
-		libvirtService, err := service.NewLibvirtFromConnectBuilder(connectBuilder)
+		libvirtService, err := service.NewLibvirt(libvirtInternalConnection)
 		if err != nil {
 			return err
 		}

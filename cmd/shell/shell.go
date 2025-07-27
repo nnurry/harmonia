@@ -19,7 +19,7 @@ const (
 
 type ShellCommand struct {
 	isLocal bool
-	cfg     connection.SSHConfig
+	config  connection.SSHConfig
 }
 
 func (command *ShellCommand) Description() string {
@@ -39,29 +39,29 @@ func (command *ShellCommand) Flags() []cli.Flag {
 		&cli.StringFlag{
 			Name:        "user",
 			Value:       "root",
-			Destination: &command.cfg.User,
+			Destination: &command.config.User,
 		},
 		&cli.StringFlag{
 			Name:        "host",
 			Value:       "localhost",
-			Destination: &command.cfg.Host,
+			Destination: &command.config.Host,
 		},
 		&cli.IntFlag{
 			Name:        "port",
 			Value:       22,
-			Destination: &command.cfg.Port,
+			Destination: &command.config.Port,
 		},
 		&cli.StringFlag{
 			Name:        "ssh-password",
-			Destination: &command.cfg.PasswordAuth.Password,
+			Destination: &command.config.PasswordAuth.Password,
 		},
 		&cli.StringFlag{
 			Name:        "ssh-privkey-path",
-			Destination: &command.cfg.PrivateKeyAuth.PrivateKeyPath,
+			Destination: &command.config.PrivateKeyAuth.PrivateKeyPath,
 		},
 		&cli.StringFlag{
 			Name:        "ssh-passphrase",
-			Destination: &command.cfg.PrivateKeyAuth.Passphrase,
+			Destination: &command.config.PrivateKeyAuth.Passphrase,
 		},
 	}
 }
@@ -81,7 +81,7 @@ func (command *ShellCommand) Handler() func(ctx *cli.Context) error {
 		if command.isLocal {
 			shellProcessor = processor.NewLocalShell()
 		} else {
-			sshConnection, err := connection.NewSSH(command.cfg)
+			sshConnection, err := connection.NewSSH(command.config)
 			if err != nil {
 				return fmt.Errorf("can't init ssh service: %v", err)
 			}
@@ -102,7 +102,7 @@ func (command *ShellCommand) Handler() func(ctx *cli.Context) error {
 }
 
 func (command *ShellCommand) Build() *cli.Command {
-	command.cfg = connection.SSHConfig{
+	command.config = connection.SSHConfig{
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 	cliCommand := utils.ConvertInternalCommandToCliCommand(command)

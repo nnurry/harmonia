@@ -1,10 +1,11 @@
 package libvirt
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 
-	"github.com/nnurry/harmonia/internal/builder"
+	"github.com/nnurry/harmonia/internal/connection"
 	"github.com/nnurry/harmonia/pkg/types"
 	"github.com/nnurry/harmonia/pkg/utils"
 	"github.com/rs/zerolog/log"
@@ -16,11 +17,11 @@ const (
 )
 
 const (
-	LIBVIRT_COMMAND_CONNECT_BUILDER_CTX_KEY = types.InternalCommandCtxKey("connectBuilder")
+	LIBVIRT_INTERNAL_CONNECTION_CTX_KEY = types.InternalCommandCtxKey("libvirtInternalConnection")
 )
 
 type LibvirtCommand struct {
-	connectUrl string
+	config connection.LibvirtConfig
 }
 
 func (command *LibvirtCommand) Description() string {
@@ -35,8 +36,11 @@ func (command *LibvirtCommand) Flags() []cli.Flag {
 	return []cli.Flag{
 		&cli.StringFlag{
 			Name:        "connect-url",
-			Usage:       "Set Libvirt connect URL. Using this flag would discard all other connect flags",
-			Destination: &command.connectUrl,
+			Destination: &command.config.ConnectionUrl,
+		},
+		&cli.StringFlag{
+			Name:        "keyfile-path",
+			Destination: &command.config.KeyfilePath,
 		},
 	}
 }
@@ -53,22 +57,26 @@ func (command *LibvirtCommand) Subcommands() []*cli.Command {
 
 func (command *LibvirtCommand) Handler() func(ctx *cli.Context) error {
 	return func(ctx *cli.Context) error {
-		return fmt.Errorf("use subcommands instead")
+		buf := bytes.NewBufferString("")
+		for _, subcmd := range ctx.Command.Subcommands {
+			fmt.Fprintf(buf, "- %v\n", subcmd.Name)
+		}
+		return fmt.Errorf("use subcommands instead:\n%v", buf.String())
 	}
 }
 
 func (command *LibvirtCommand) Build() *cli.Command {
 	cliCommand := utils.ConvertInternalCommandToCliCommand(command)
 	cliCommand.Before = func(ctx *cli.Context) error {
-		connectBuilder, err := builder.NewLibvirtConnectBuilderFromConnectUrl(command.connectUrl)
+		libvirtConnection, err := connection.NewLibvirt(command.config)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("could not establish Libvirt connection: %v", err)
 		}
 
-		log.Info().Msgf("Setting Libvirt connection with URL = %v\n", command.connectUrl)
+		log.Info().Msgf("Setting Libvirt connection with URL = %v\n", libvirtConnection.URL())
 
-		ctx.Context = context.WithValue(ctx.Context, LIBVIRT_COMMAND_CONNECT_BUILDER_CTX_KEY, connectBuilder)
+		ctx.Context = context.WithValue(ctx.Context, LIBVIRT_INTERNAL_CONNECTION_CTX_KEY, libvirtConnection)
 		return nil
 
 	}
