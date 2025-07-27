@@ -25,8 +25,8 @@ type cloudInitISOIngredient interface {
 	FileName() string
 }
 
-func NewCloudInit() (*CloudInit, error) {
-	return &CloudInit{}, nil
+func NewCloudInit(processor processor.Shell) (*CloudInit, error) {
+	return &CloudInit{processor: processor}, nil
 }
 
 func (service *CloudInit) SerializeUserData() ([]byte, error) {
@@ -44,6 +44,13 @@ func (service *CloudInit) SerializeMetadata() ([]byte, error) {
 func (service *CloudInit) WriteToDisk(ctx context.Context, basePath string, filename string) (string, error) {
 	if filename == "" {
 		return "", fmt.Errorf("empty file path for cloud-init ISO")
+	}
+
+	var err error
+
+	err = os.MkdirAll(basePath, os.FileMode(0777))
+	if err != nil {
+		return "", fmt.Errorf("could not mkdir '%v': %v", basePath, err)
 	}
 
 	isoFilePath := fmt.Sprintf("%v/%v", basePath, filename)
@@ -79,7 +86,7 @@ func (service *CloudInit) WriteToDisk(ctx context.Context, basePath string, file
 	}
 	cmdParts = append(cmdParts, paths...)
 
-	err := service.processor.Execute(ctx, os.Stdout, os.Stderr, cmdParts[0], cmdParts[1:]...)
+	err = service.processor.Execute(ctx, os.Stdout, os.Stderr, cmdParts[0], cmdParts[1:]...)
 	if err != nil {
 		return "", fmt.Errorf("could not write ISO file to disk for cloud-init ISO: %v", err)
 	}
