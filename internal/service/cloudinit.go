@@ -29,18 +29,6 @@ func NewCloudInit(processor processor.Shell) (*CloudInit, error) {
 	return &CloudInit{processor: processor}, nil
 }
 
-func (service *CloudInit) SerializeUserData() ([]byte, error) {
-	return service.UserData.Serialize()
-}
-
-func (service *CloudInit) SerializeNetworkConfig() ([]byte, error) {
-	return service.NetworkConfig.Serialize()
-}
-
-func (service *CloudInit) SerializeMetadata() ([]byte, error) {
-	return service.MetaData.Serialize()
-}
-
 func (service *CloudInit) WriteToDisk(ctx context.Context, basePath string, filename string) (string, error) {
 	if filename == "" {
 		return "", fmt.Errorf("empty file path for cloud-init ISO")
