@@ -31,6 +31,10 @@ type Nameserver struct {
 	Addresses []string `json:"addresses"`
 }
 
+func (nc NetworkConfig) FileName() string {
+	return "network-config"
+}
+
 func (nc NetworkConfig) Serialize() ([]byte, error) {
 	var buf bytes.Buffer
 	return utils.SerializeFromEncoder(yaml.NewEncoder(&buf, yaml.Flow(false)), &buf, nc)

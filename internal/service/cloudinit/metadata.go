@@ -12,6 +12,10 @@ type MetaData struct {
 	Hostname   string `json:"local-hostname,omitempty"`
 }
 
+func (md MetaData) FileName() string {
+	return "meta-data"
+}
+
 func (md MetaData) Serialize() ([]byte, error) {
 	var buf bytes.Buffer
 	return utils.SerializeFromEncoder(json.NewEncoder(&buf), &buf, md)

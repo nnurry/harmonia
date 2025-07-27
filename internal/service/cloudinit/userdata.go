@@ -20,6 +20,10 @@ type User struct {
 	AuthorizedKeys []string `json:"ssh_authorized_keys,omitempty"`
 }
 
+func (ud UserData) FileName() string {
+	return "user-data"
+}
+
 func (ud UserData) Serialize() ([]byte, error) {
 	var buf bytes.Buffer
 
