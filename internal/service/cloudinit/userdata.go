@@ -8,16 +8,16 @@ import (
 )
 
 type UserData struct {
-	Hostname       string `yaml:"hostname"`
-	ManageEtcHosts bool   `yaml:"manage_etc_hosts,omitempty"`
-	DisableRootPw  bool   `yaml:"disable_root_pw,omitempty"`
-	Users          []User `yaml:"users,omitempty"`
+	Hostname       string `json:"hostname"`
+	ManageEtcHosts bool   `json:"manage_etc_hosts,omitempty"`
+	DisableRootPw  bool   `json:"disable_root_pw,omitempty"`
+	Users          []User `json:"users,omitempty"`
 }
 
 type User struct {
-	Name           string   `yaml:"name"`
-	Sudo           string   `yaml:"sudo,omitempty"`
-	AuthorizedKeys []string `yaml:"ssh_authorized_keys,omitempty"`
+	Name           string   `json:"name"`
+	Sudo           string   `json:"sudo,omitempty"`
+	AuthorizedKeys []string `json:"ssh_authorized_keys,omitempty"`
 }
 
 func (ud UserData) FileName() string {

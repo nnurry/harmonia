@@ -8,8 +8,8 @@ import (
 )
 
 type MetaData struct {
-	InstanceId string `yaml:"instance-id,omitempty"`
-	Hostname   string `yaml:"local-hostname,omitempty"`
+	InstanceId string `json:"instance-id,omitempty"`
+	Hostname   string `json:"local-hostname,omitempty"`
 }
 
 func (md MetaData) FileName() string {
