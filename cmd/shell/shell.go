@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/nnurry/harmonia/internal/config"
+	"github.com/nnurry/harmonia/internal/connection"
 	"github.com/nnurry/harmonia/internal/processor"
-	"github.com/nnurry/harmonia/internal/service"
 	"github.com/nnurry/harmonia/pkg/types"
 	"github.com/nnurry/harmonia/pkg/utils"
 	"github.com/urfave/cli/v2"
@@ -19,7 +18,7 @@ const (
 
 type ShellCommand struct {
 	isLocal bool
-	cfg     config.SSH
+	cfg     connection.SSHConfig
 }
 
 func (command *ShellCommand) Description() string {
@@ -81,7 +80,7 @@ func (command *ShellCommand) Handler() func(ctx *cli.Context) error {
 		if command.isLocal {
 			shellProcessor = processor.NewLocalShell()
 		} else {
-			sshService, err := service.NewSSH(command.cfg)
+			sshService, err := connection.NewSSH(command.cfg)
 			if err != nil {
 				return fmt.Errorf("can't init ssh service: %v", err)
 			}
@@ -101,7 +100,7 @@ func (command *ShellCommand) Handler() func(ctx *cli.Context) error {
 }
 
 func (command *ShellCommand) Build() *cli.Command {
-	command.cfg = config.SSH{
+	command.cfg = connection.SSHConfig{
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 	cliCommand := utils.ConvertInternalCommandToCliCommand(command)
