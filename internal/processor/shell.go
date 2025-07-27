@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"golang.org/x/crypto/ssh"
+	"github.com/nnurry/harmonia/internal/connection"
 )
 
 type Shell interface {
@@ -43,10 +43,10 @@ func (processor *LocalShell) Execute(
 }
 
 type SecureShell struct {
-	client *ssh.Client
+	client *connection.SSH
 }
 
-func NewSecureShell(client *ssh.Client) *SecureShell {
+func NewSecureShell(client *connection.SSH) *SecureShell {
 	return &SecureShell{client: client}
 }
 
@@ -59,9 +59,9 @@ func (processor *SecureShell) Execute(
 	stdout, stderr io.Writer,
 	command string, args ...string,
 ) error {
-	session, err := processor.client.NewSession()
+	session, err := processor.client.Session()
 	if err != nil {
-		return fmt.Errorf("client.NewSession() error: %v", err)
+		return fmt.Errorf("client.Session() error: %v", err)
 	}
 
 	defer session.Close()

@@ -49,8 +49,16 @@ func NewSSH(config SSHConfig) (*SSH, error) {
 	return connection, nil
 }
 
+func (connection SSH) Name() string {
+	return "ssh"
+}
+
 func (connection *SSH) Client() *ssh.Client {
 	return connection.client
+}
+
+func (connection *SSH) Session() (*ssh.Session, error) {
+	return connection.Client().NewSession()
 }
 
 func (connection *SSH) Cleanup() error {

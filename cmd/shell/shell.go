@@ -80,12 +80,13 @@ func (command *ShellCommand) Handler() func(ctx *cli.Context) error {
 		if command.isLocal {
 			shellProcessor = processor.NewLocalShell()
 		} else {
-			sshService, err := connection.NewSSH(command.cfg)
+			sshConnection, err := connection.NewSSH(command.cfg)
 			if err != nil {
 				return fmt.Errorf("can't init ssh service: %v", err)
 			}
 
-			shellProcessor = processor.NewSecureShell(sshService.Client())
+			shellProcessor = processor.NewSecureShell(sshConnection)
+			defer sshConnection.Cleanup()
 		}
 
 		argsArray := ctx.Args().Slice()
