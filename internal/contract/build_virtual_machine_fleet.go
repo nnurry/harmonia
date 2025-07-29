@@ -50,3 +50,10 @@ func (r BuildVirtualMachineFleetRequest) GetCoalesced() BuildVirtualMachineFleet
 
 	return r
 }
+
+type BuildVirtualMachineFleetResult struct {
+	SubResults []BuildVirtualMachineResult `json:"sub_results"`
+	Failed     int                         `json:"failed"`
+	Success    int                         `json:"success"`
+	Total      int                         `json:"total"`
+}

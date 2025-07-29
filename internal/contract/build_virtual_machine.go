@@ -33,3 +33,9 @@ type NetworkVMConfig struct {
 }
 
 type BuildVirtualMachineRequest BuildVirtualMachineConfig
+
+type BuildVirtualMachineResult struct {
+	UUID  string `json:"uuid,omitempty"`
+	Name  string `json:"name"`
+	Error error  `json:"error,omitempty"`
+}

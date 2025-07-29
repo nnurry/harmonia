@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -18,86 +17,93 @@ func NewVirtualMachine() *VirtualMachine {
 	return &VirtualMachine{}
 }
 
-func (handler VirtualMachine) parseBodyAndHandleError(writer http.ResponseWriter, request *http.Request, v any) (responseCallback, error) {
-	err := json.NewDecoder(request.Body).Decode(&v)
-	if err != nil {
-		return func() {
-			result := contract.Result{
-				Body: struct {
-					Error error `json:"error"`
-				}{err},
-				Message: "could not parse request body",
-			}
-			writeResult(writer, http.StatusBadRequest, result)
-		}, err
-	}
-	return func() {}, nil
-}
-
-func (handler *VirtualMachine) create(request contract.BuildVirtualMachineConfig) error {
+func (handler *VirtualMachine) create(request contract.BuildVirtualMachineConfig) (string, error) {
 	log.Info().Msg(fmt.Sprintf("create VM %v", request.Name))
 	// create VM
 	// create cloud-init ISO
-	return nil
+	return "", nil
 }
 
 func (handler *VirtualMachine) Create(writer http.ResponseWriter, request *http.Request) {
 	var createRequest contract.BuildVirtualMachineRequest
-	cb, err := handler.parseBodyAndHandleError(writer, request, &createRequest)
+	cb, err := parseBodyAndHandleError(writer, request, &createRequest)
 	if err != nil {
 		cb()
 		return
 	}
 
-	err = handler.create(contract.BuildVirtualMachineConfig(createRequest))
+	domainUuid, err := handler.create(contract.BuildVirtualMachineConfig(createRequest))
+	result := contract.BuildVirtualMachineResult{
+		Name: createRequest.Name,
+	}
 	if err != nil {
-		result := contract.Result{
-			Body: struct {
-				Name  string `json:"name"`
-				Error error  `json:"error"`
-			}{
-				Name:  createRequest.Name,
-				Error: err,
-			},
+		result.Error = err
+		writeResult(writer, http.StatusInternalServerError, contract.GenericResponse{
+			Body:    result,
 			Message: "could not create single virtual machine",
-		}
-		writeResult(writer, http.StatusInternalServerError, result)
+		})
 		return
 	}
 
-	writeResult(writer, http.StatusOK, contract.Result{
+	result.UUID = domainUuid
+
+	writeResult(writer, http.StatusOK, contract.GenericResponse{
+		Body:    result,
 		Message: "created single virtual machine",
 	})
 }
 
 func (handler *VirtualMachine) CreateFleet(writer http.ResponseWriter, request *http.Request) {
 	var fleetCreateRequest contract.BuildVirtualMachineFleetRequest
-	cb, err := handler.parseBodyAndHandleError(writer, request, &fleetCreateRequest)
+	cb, err := parseBodyAndHandleError(writer, request, &fleetCreateRequest)
 
 	if err != nil {
 		cb()
 		return
 	}
 
-	errors := map[string]error{}
+	result := contract.BuildVirtualMachineFleetResult{
+		SubResults: []contract.BuildVirtualMachineResult{},
+		Failed:     0,
+		Success:    0,
+		Total:      0,
+	}
 
 	for _, config := range fleetCreateRequest.GetCoalesced().VirtualMachineConfigs {
-		err := handler.create(contract.BuildVirtualMachineConfig(config))
-		if err != nil {
-			errors[config.Name] = err
+		subResult := contract.BuildVirtualMachineResult{
+			Name: config.Name,
 		}
+
+		domainUuid, err := handler.create(contract.BuildVirtualMachineConfig(config))
+
+		if err != nil {
+			subResult.Error = err
+			result.Failed++
+		} else {
+			subResult.UUID = domainUuid
+			result.Success++
+		}
+		result.Total++
+
+		result.SubResults = append(result.SubResults, subResult)
 	}
 
-	if len(errors) > 0 {
-		result := contract.Result{
-			Body:    errors,
-			Message: "could not create virtual machine fleet",
+	var message string
+	if result.Failed > 0 {
+		if result.Failed == result.Total {
+			message = "failed to create virtual machine fleet"
+		} else {
+			message = "created virtual machine fleet with partial failures"
 		}
-		writeResult(writer, http.StatusInternalServerError, result)
-		return
+	} else {
+		message = "created virtual machine fleet"
 	}
+
 	writeResult(
 		writer, http.StatusOK,
-		contract.Result{Message: "created virtual machine fleet"},
+		contract.GenericResponse{
+			Body:    result,
+			Message: message,
+		},
 	)
 }
