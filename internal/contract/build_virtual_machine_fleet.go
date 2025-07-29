@@ -25,7 +25,7 @@ type NetworkSharedConfig struct {
 	Nameservers []string `json:"nameservers"`
 }
 
-func (r BuildVirtualMachineFleetRequest) Populate() {
+func (r BuildVirtualMachineFleetRequest) GetCoalesced() BuildVirtualMachineFleetRequest {
 	for i, vmConfig := range r.VirtualMachineConfigs {
 		if len(vmConfig.Nameservers) < 1 {
 			r.VirtualMachineConfigs[i].Nameservers = r.SharedConfig.Nameservers
@@ -47,4 +47,6 @@ func (r BuildVirtualMachineFleetRequest) Populate() {
 			r.VirtualMachineConfigs[i].BaseVirtualMachineName = r.SharedConfig.BaseVirtualMachineName
 		}
 	}
+
+	return r
 }

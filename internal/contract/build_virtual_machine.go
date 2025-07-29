@@ -32,6 +32,4 @@ type NetworkVMConfig struct {
 	Nameservers        []string `json:"nameservers"`
 }
 
-type BuildVirtualMachineRequest struct {
-	BuildVirtualMachineConfig `json:",inline"`
-}
+type BuildVirtualMachineRequest BuildVirtualMachineConfig
