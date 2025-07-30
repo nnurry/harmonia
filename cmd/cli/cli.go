@@ -1,10 +1,10 @@
-package cmd
+package cli
 
 import (
 	"fmt"
 
-	libvirtcmd "github.com/nnurry/harmonia/cmd/libvirt"
-	shellcmd "github.com/nnurry/harmonia/cmd/shell"
+	libvirtcmd "github.com/nnurry/harmonia/cmd/cli/libvirt"
+	shellcmd "github.com/nnurry/harmonia/cmd/cli/shell"
 	"github.com/nnurry/harmonia/pkg/types"
 	"github.com/urfave/cli/v2"
 )

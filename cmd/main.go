@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
-	"github.com/nnurry/harmonia/cmd"
-	libvirtcmd "github.com/nnurry/harmonia/cmd/libvirt"
-	shellcmd "github.com/nnurry/harmonia/cmd/shell"
+	mycli "github.com/nnurry/harmonia/cmd/cli"
+	libvirtcmd "github.com/nnurry/harmonia/cmd/cli/libvirt"
+	shellcmd "github.com/nnurry/harmonia/cmd/cli/shell"
 	"github.com/nnurry/harmonia/internal/logger"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
@@ -17,8 +17,8 @@ func main() {
 		Name:        "cli",
 		Description: "Commands for interacting with Harmonia's features directly.",
 		Subcommands: []*cli.Command{
-			cmd.GetCliCommand(libvirtcmd.LIBVIRT_COMMAND),
-			cmd.GetCliCommand(shellcmd.SHELL_COMMAND),
+			mycli.GetCliCommand(libvirtcmd.LIBVIRT_COMMAND),
+			mycli.GetCliCommand(shellcmd.SHELL_COMMAND),
 		},
 	}
 
