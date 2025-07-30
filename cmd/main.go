@@ -2,11 +2,15 @@ package main
 
 import (
 	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 
 	mycli "github.com/nnurry/harmonia/cmd/cli"
 	libvirtcmd "github.com/nnurry/harmonia/cmd/cli/libvirt"
 	shellcmd "github.com/nnurry/harmonia/cmd/cli/shell"
 	"github.com/nnurry/harmonia/internal/logger"
+	"github.com/nnurry/harmonia/internal/server"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 )
@@ -30,7 +34,18 @@ func main() {
 				Name:        "start",
 				Description: "Start the Harmonia API server",
 				Action: func(c *cli.Context) error {
+					var wg sync.WaitGroup
+
+					osChan := make(chan os.Signal, 1)
+					signal.Notify(osChan, syscall.SIGTERM, syscall.SIGINT)
+
 					log.Info().Msg("Starting Harmonia API server...")
+					httpSrv := server.Init()
+
+					go server.Cleanup(httpSrv, osChan, &wg)
+					server.Start(httpSrv, osChan, &wg)
+
+					wg.Wait()
 					return nil
 				},
 			},
