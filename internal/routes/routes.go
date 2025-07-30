@@ -32,5 +32,9 @@ func SetupMux() *Router {
 	router := Router{http.NewServeMux()}
 
 	router.Handle("/api/v1", router.V1Handler())
+	router.HandleFunc("/heartbeat", func(writer http.ResponseWriter, request *http.Request) {
+		writer.WriteHeader(200)
+		writer.Write([]byte("OK"))
+	})
 	return &router
 }
