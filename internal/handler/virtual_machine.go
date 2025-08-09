@@ -26,7 +26,7 @@ func (handler *VirtualMachine) create(request contract.BuildVirtualMachineConfig
 
 func (handler *VirtualMachine) Create(writer http.ResponseWriter, request *http.Request) {
 	var createRequest contract.BuildVirtualMachineRequest
-	cb, err := parseBodyAndHandleError(writer, request, &createRequest)
+	cb, err := parseBodyAndHandleError(writer, request, &createRequest, true)
 	if err != nil {
 		cb()
 		return
@@ -55,7 +55,7 @@ func (handler *VirtualMachine) Create(writer http.ResponseWriter, request *http.
 
 func (handler *VirtualMachine) CreateFleet(writer http.ResponseWriter, request *http.Request) {
 	var fleetCreateRequest contract.BuildVirtualMachineFleetRequest
-	cb, err := parseBodyAndHandleError(writer, request, &fleetCreateRequest)
+	cb, err := parseBodyAndHandleError(writer, request, &fleetCreateRequest, true)
 
 	if err != nil {
 		cb()
