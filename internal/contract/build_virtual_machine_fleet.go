@@ -6,9 +6,10 @@ type BuildVirtualMachineFleetRequest struct {
 }
 
 type FleetSharedConfig struct {
-	GeneralSharedConfig `json:"general"`
-	SSHSharedConfig     `json:"ssh"`
-	NetworkSharedConfig `json:"cloud_init"`
+	GeneralSharedConfig         `json:"general"`
+	SSHSharedConfig             `json:"ssh"`
+	NetworkSharedConfig         `json:"cloud_init"`
+	*HypervisorConnectionConfig `json:"hypervisor_connection,omitempty"`
 }
 
 type GeneralSharedConfig struct {
@@ -45,6 +46,11 @@ func (r BuildVirtualMachineFleetRequest) GetCoalesced() BuildVirtualMachineFleet
 
 		if vmConfig.BaseVirtualMachineName == "" {
 			r.VirtualMachineConfigs[i].BaseVirtualMachineName = r.SharedConfig.BaseVirtualMachineName
+		}
+
+		if vmConfig.HypervisorConnectionConfig == nil {
+			sharedHypervisorConnectionConfig := *r.SharedConfig.HypervisorConnectionConfig
+			r.VirtualMachineConfigs[i].HypervisorConnectionConfig = &sharedHypervisorConnectionConfig
 		}
 	}
 

@@ -10,7 +10,6 @@ import (
 	"github.com/nnurry/harmonia/pkg/utils"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
-	"golang.org/x/crypto/ssh"
 )
 
 const (
@@ -103,7 +102,7 @@ func (command *ShellCommand) Handler() func(ctx *cli.Context) error {
 
 func (command *ShellCommand) Build() *cli.Command {
 	command.config = connection.SSHConfig{
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallbackName: "InsecureIgnoreHostKey",
 	}
 	cliCommand := utils.ConvertInternalCommandToCliCommand(command)
 	return cliCommand

@@ -1,12 +1,21 @@
 package contract
 
+import "github.com/nnurry/harmonia/internal/connection"
+
 type BuildVirtualMachineConfig struct {
-	GeneralVMConfig `json:",inline"`
-	UserVMConfig    `json:",inline"`
-	NetworkVMConfig `json:",inline"`
+	GeneralVMConfig             `json:",inline"`
+	UserVMConfig                `json:",inline"`
+	NetworkVMConfig             `json:",inline"`
+	*HypervisorConnectionConfig `json:"hypervisor_connection,omitempty"`
 
 	CloudInitISOPath string `json:"cloud_init_iso_path"`
 	QCOW2FilePath    string `json:"qcow2_file_path"`
+}
+
+type HypervisorConnectionConfig struct {
+	connection.LibvirtConfig `json:"libvirt"`
+	connection.SSHConfig     `json:"ssh"`
+	IsLocalShell             bool `json:"is_local_shell"`
 }
 
 type GeneralVMConfig struct {
@@ -37,5 +46,5 @@ type BuildVirtualMachineRequest BuildVirtualMachineConfig
 type BuildVirtualMachineResult struct {
 	UUID  string `json:"uuid,omitempty"`
 	Name  string `json:"name"`
-	Error error  `json:"error,omitempty"`
+	Error string `json:"error,omitempty"`
 }

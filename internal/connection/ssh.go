@@ -3,6 +3,7 @@ package connection
 import (
 	"bytes"
 	"fmt"
+	"time"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -13,10 +14,17 @@ type SSH struct {
 
 func NewSSH(config SSHConfig) (*SSH, error) {
 	connection := &SSH{}
+	hostKeyCallback, err := config.HostKeyCallback(config.HostKeyCallbackName)
+
+	if err != nil {
+		return nil, fmt.Errorf("could not parse ssh config: %v", err)
+	}
+
 	clientConfig := ssh.ClientConfig{
 		User:            config.User,
 		Auth:            []ssh.AuthMethod{},
-		HostKeyCallback: config.HostKeyCallback,
+		HostKeyCallback: hostKeyCallback,
+		Timeout:         time.Duration(360 * time.Second),
 	}
 
 	// let's parse both and see what we got

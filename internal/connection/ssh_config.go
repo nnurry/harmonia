@@ -1,6 +1,7 @@
 package connection
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -8,23 +9,31 @@ import (
 )
 
 type SSHConfig struct {
-	User string
-	Host string
-	Port int
+	User string `json:"user"`
+	Host string `json:"host"`
+	Port int    `json:"port"`
 
-	HostKeyCallback ssh.HostKeyCallback
+	HostKeyCallbackName string `json:"hostkey_callback_name"`
 
-	PasswordAuth   passwordAuthSSHConfig
-	PrivateKeyAuth privateKeyAuthSSHConfig
+	PasswordAuth   passwordAuthSSHConfig   `json:"password_auth_config"`
+	PrivateKeyAuth privateKeyAuthSSHConfig `json:"privkey_auth_config"`
 }
 
 type passwordAuthSSHConfig struct {
-	Password string
+	Password string `json:"password"`
 }
 
 type privateKeyAuthSSHConfig struct {
-	PrivateKeyPath string
-	Passphrase     string
+	PrivateKeyPath string `json:"path"`
+	Passphrase     string `json:"passphrase"`
+}
+
+func (cfg SSHConfig) HostKeyCallback(callbackName string) (ssh.HostKeyCallback, error) {
+	switch callbackName {
+	case "InsecureIgnoreHostKey":
+		return ssh.InsecureIgnoreHostKey(), nil
+	}
+	return nil, errors.New("unsupported host key callback")
 }
 
 func (cfg SSHConfig) ParsePasswordAuth() (ssh.AuthMethod, error) {
