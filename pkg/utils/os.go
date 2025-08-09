@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func GenerateUniqueTimestampDirName() string {
+func GenerateUniqueTimestamp() string {
 	stringBuffer := bytes.NewBufferString("")
 
 	now := time.Now()
