@@ -10,6 +10,18 @@ shared_config:
       - "8.8.8.8"
       - "8.8.4.4"
     disable_root_pw: true
+  hypervisor_connection:
+    is_local_shell: true
+    libvirt:
+      connection_url: "qemu+ssh://root@hypervisor/system"
+      keyfile_path: "/root/.ssh/hypervisor-id_ed25519"
+    ssh:
+      user: root
+      host: hypervisor
+      port: 22
+      hostkey_callback_name: InsecureIgnoreHostKey
+      privkey_auth_config:
+        path: "/root/.ssh/hypervisor-id_ed25519"
 
 virtual_machines:
   - name: "master-1"
