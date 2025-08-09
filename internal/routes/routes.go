@@ -23,7 +23,7 @@ func (router *Router) VirtualMachineHandler() http.Handler {
 func (router *Router) V1Handler() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.Handle("/virtual-machine", router.VirtualMachineHandler())
+	mux.Handle("/virtual-machine/", http.StripPrefix("/virtual-machine", router.VirtualMachineHandler()))
 
 	return mux
 }
@@ -31,10 +31,11 @@ func (router *Router) V1Handler() http.Handler {
 func SetupMux() *Router {
 	router := Router{http.NewServeMux()}
 
-	router.Handle("/api/v1", router.V1Handler())
-	router.HandleFunc("/heartbeat", func(writer http.ResponseWriter, request *http.Request) {
+	router.ServeMux.Handle("/api/v1/", http.StripPrefix("/api/v1", router.V1Handler()))
+
+	router.ServeMux.HandleFunc("/heartbeat", func(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(200)
-		writer.Write([]byte("OK"))
+		writer.Write([]byte("i have not exploded"))
 	})
 	return &router
 }
