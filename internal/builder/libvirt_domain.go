@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/nnurry/harmonia/pkg/types"
+	"github.com/rs/zerolog/log"
 	"libvirt.org/go/libvirt"
 	"libvirt.org/go/libvirtxml"
 )
@@ -97,6 +98,7 @@ func (builder *LibvirtDomainBuilder) getDefaultBuilderFlags() []types.BuilderFla
 }
 
 func (builder *LibvirtDomainBuilder) WithDomainName(name string) *LibvirtDomainBuilder {
+	log.Info().Msg("setting domain name for VM")
 	builder.newDomainXml.Name = name
 
 	builder.builderFlagMap.MarkAsChecked(SET_VM_NAME)
@@ -104,6 +106,7 @@ func (builder *LibvirtDomainBuilder) WithDomainName(name string) *LibvirtDomainB
 }
 
 func (builder *LibvirtDomainBuilder) WithNumOfCpus(numOfCpus int) *LibvirtDomainBuilder {
+	log.Info().Msg("setting num of CPUs for VM")
 	builder.newDomainXml.CPU = &libvirtxml.DomainCPU{
 		Mode: builder.baseDomainXml.CPU.Mode,
 		Topology: &libvirtxml.DomainCPUTopology{
@@ -123,6 +126,8 @@ func (builder *LibvirtDomainBuilder) WithNumOfCpus(numOfCpus int) *LibvirtDomain
 }
 
 func (builder *LibvirtDomainBuilder) WithMemory(memory uint, unit string) *LibvirtDomainBuilder {
+	log.Info().Msg("setting memory for VM")
+
 	builder.newDomainXml.Memory = &libvirtxml.DomainMemory{Value: memory, Unit: unit}
 	builder.newDomainXml.CurrentMemory = &libvirtxml.DomainCurrentMemory{Value: memory, Unit: unit}
 
@@ -131,6 +136,8 @@ func (builder *LibvirtDomainBuilder) WithMemory(memory uint, unit string) *Libvi
 }
 
 func (builder *LibvirtDomainBuilder) WithQcow2DiskPath(path string) *LibvirtDomainBuilder {
+	log.Info().Msg("setting QCOW2 disk path for VM")
+
 	builder.qcow2DomainDisk = &libvirtxml.DomainDisk{
 		Device: "disk",
 		Driver: &libvirtxml.DomainDiskDriver{Name: "qemu", Type: "qcow2", Cache: "none", Discard: "unmap"},
@@ -144,6 +151,8 @@ func (builder *LibvirtDomainBuilder) WithQcow2DiskPath(path string) *LibvirtDoma
 }
 
 func (builder *LibvirtDomainBuilder) WithCiDiskPath(path string) *LibvirtDomainBuilder {
+	log.Info().Msg("setting cloud-init disk path for VM")
+
 	builder.ciDomainDisk = &libvirtxml.DomainDisk{
 		Device:   "cdrom",
 		Driver:   &libvirtxml.DomainDiskDriver{Name: "qemu", Type: "raw"},
