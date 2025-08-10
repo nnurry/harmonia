@@ -75,7 +75,7 @@ func (command *ShellCommand) Handler() func(ctx *cli.Context) error {
 			return fmt.Errorf("no entrypoint")
 		}
 
-		var shellProcessor processor.Shell
+		var shellProcessor ShellProcessor
 
 		if command.isLocal {
 			shellProcessor = processor.NewLocalShell()

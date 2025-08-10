@@ -2,11 +2,14 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
-	"github.com/nnurry/harmonia/internal/processor"
+	"github.com/nnurry/harmonia/internal/connection"
 	"github.com/nnurry/harmonia/internal/service/cloudinit"
+	"github.com/pkg/sftp"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -14,7 +17,8 @@ const (
 )
 
 type CloudInit struct {
-	processor     processor.Shell
+	processor     ShellProcessor
+	sftpClient    *sftp.Client
 	UserData      cloudinit.UserData
 	MetaData      cloudinit.MetaData
 	NetworkConfig cloudinit.NetworkConfig
@@ -25,8 +29,28 @@ type cloudInitISOIngredient interface {
 	FileName() string
 }
 
-func NewCloudInit(processor processor.Shell) (*CloudInit, error) {
-	return &CloudInit{processor: processor}, nil
+func NewCloudInit(processor ShellProcessor, sshConnection *connection.SSH) (*CloudInit, error) {
+	log.Info().Msg("creating SFTP client")
+
+	sftpClient, err := sftp.NewClient(sshConnection.Client())
+	if err != nil {
+		return nil, fmt.Errorf("could not create SFTP client for cloud-init service: %v", err)
+	}
+
+	log.Info().Msg("created SFTP client")
+	return &CloudInit{processor: processor, sftpClient: sftpClient}, nil
+}
+
+func (service *CloudInit) SetUserData(userData cloudinit.UserData) {
+	service.UserData = userData
+}
+
+func (service *CloudInit) SetMetaData(metaData cloudinit.MetaData) {
+	service.MetaData = metaData
+}
+
+func (service *CloudInit) SetNetworkConfig(networkConfig cloudinit.NetworkConfig) {
+	service.NetworkConfig = networkConfig
 }
 
 func (service *CloudInit) WriteToDisk(ctx context.Context, basePath string, filename string) (string, error) {
@@ -36,7 +60,13 @@ func (service *CloudInit) WriteToDisk(ctx context.Context, basePath string, file
 
 	var err error
 
-	err = os.MkdirAll(basePath, os.FileMode(0777))
+	if service.sftpClient != nil {
+		err = service.sftpClient.MkdirAll(basePath)
+		err = errors.Join(err, service.sftpClient.Chmod(basePath, os.FileMode(0777)))
+	} else {
+		err = os.MkdirAll(basePath, os.FileMode(0777))
+	}
+
 	if err != nil {
 		return "", fmt.Errorf("could not mkdir '%v': %v", basePath, err)
 	}
@@ -57,7 +87,16 @@ func (service *CloudInit) WriteToDisk(ctx context.Context, basePath string, file
 			return "", fmt.Errorf("could not serialize ingredient %v for cloud-init ISO: %v", name, err)
 		}
 
-		err = os.WriteFile(path, data, os.FileMode(0777))
+		if service.sftpClient != nil {
+			var sftpFile *sftp.File
+			if sftpFile, err = service.sftpClient.Create(path); err == nil {
+				sftpFile.Chmod(os.FileMode(0777))
+				_, err = sftpFile.Write(data)
+			}
+		} else {
+			err = os.WriteFile(path, data, os.FileMode(0777))
+		}
+
 		if err != nil {
 			return "", fmt.Errorf("could not write ingredient %v to disk for cloud-init ISO: %v", name, err)
 		}
@@ -79,4 +118,8 @@ func (service *CloudInit) WriteToDisk(ctx context.Context, basePath string, file
 		return "", fmt.Errorf("could not write ISO file to disk for cloud-init ISO: %v", err)
 	}
 	return isoFilePath, nil
+}
+
+func (service *CloudInit) RemoveFromDisk(ctx context.Context, basePath string) error {
+	return service.sftpClient.RemoveAll(basePath)
 }

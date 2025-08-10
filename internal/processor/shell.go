@@ -10,11 +10,6 @@ import (
 	"github.com/nnurry/harmonia/internal/connection"
 )
 
-type Shell interface {
-	Name() string
-	Execute(context.Context, io.Writer, io.Writer, string, ...string) error
-}
-
 type LocalShell struct {
 }
 
