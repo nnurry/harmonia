@@ -166,6 +166,7 @@ func (service *VirtualMachine) Cleanup(cloudInitDir string) error {
 		if err != nil {
 			return fmt.Errorf("failed to remove cloud-init iso after failing to create VM: %v", err)
 		}
+		log.Info().Msg("removed cloud-init iso after failing to create VM")
 	}
 	return nil
 }
