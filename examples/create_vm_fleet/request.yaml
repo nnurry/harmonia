@@ -11,7 +11,7 @@ shared_config:
       - "8.8.4.4"
     disable_root_pw: true
   hypervisor_connection:
-    is_local_shell: true
+    is_local_shell: false
     libvirt:
       connection_url: "qemu+ssh://root@hypervisor/system"
       keyfile_path: "/root/.ssh/hypervisor-id_ed25519"
