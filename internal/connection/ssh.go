@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -54,6 +55,7 @@ func NewSSH(config SSHConfig) (*SSH, error) {
 	}
 
 	connection.client = client
+	log.Info().Msg("created SSH client")
 
 	return connection, nil
 }
