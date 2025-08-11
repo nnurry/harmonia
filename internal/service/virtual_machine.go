@@ -70,7 +70,7 @@ func (service *VirtualMachine) Create(config contract.BuildVirtualMachineConfig)
 					IPv4Addresses:      []string{fmt.Sprintf("%v/24", config.NetworkVMConfig.IPv4Address)},
 					IPv4GatewayAddress: config.NetworkVMConfig.IPv4GatewayAddress,
 					MacAddress:         config.NetworkVMConfig.MacAddress,
-					Nameservers:        []cloudinit.Nameserver{{Addresses: config.NetworkVMConfig.Nameservers}},
+					Nameservers:        cloudinit.Nameserver{Addresses: config.NetworkVMConfig.Nameservers},
 				},
 			},
 		},

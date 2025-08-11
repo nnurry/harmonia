@@ -21,11 +21,11 @@ type Ethernet struct {
 }
 
 type Eth0 struct {
-	Dhcp4              bool         `yaml:"dhcp4"`
-	IPv4Addresses      []string     `yaml:"addresses,flow"`
-	IPv4GatewayAddress string       `yaml:"gateway4"`
-	MacAddress         string       `yaml:"macaddress"`
-	Nameservers        []Nameserver `yaml:"nameservers"`
+	Dhcp4              bool       `yaml:"dhcp4"`
+	IPv4Addresses      []string   `yaml:"addresses,flow"`
+	IPv4GatewayAddress string     `yaml:"gateway4"`
+	MacAddress         string     `yaml:"macaddress"`
+	Nameservers        Nameserver `yaml:"nameservers"`
 }
 
 type Nameserver struct {
