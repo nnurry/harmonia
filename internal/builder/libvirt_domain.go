@@ -67,7 +67,6 @@ func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain, requiredFlags []*Domain
 	newDomainXml.Type = "kvm"
 	newDomainXml.Metadata = baseDomainXml.Metadata
 	newDomainXml.OS = baseDomainXml.OS
-
 	newDomainXml.Features = baseDomainXml.Features
 	newDomainXml.Clock = baseDomainXml.Clock
 	newDomainXml.OnPoweroff = baseDomainXml.OnPoweroff
@@ -79,7 +78,8 @@ func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain, requiredFlags []*Domain
 		SuspendToDisk: &libvirtxml.DomainPMPolicy{Enabled: "no"},
 	}
 
-	newDomainXml.Devices = baseDomainXml.Devices
+	baseDomainDevices := *baseDomainXml.Devices
+	newDomainXml.Devices = &baseDomainDevices
 
 	builder.baseDomainXml = baseDomainXml
 	builder.newDomainXml = newDomainXml
