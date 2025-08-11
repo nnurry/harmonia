@@ -31,7 +31,7 @@ func (handler *VirtualMachine) create(config contract.BuildVirtualMachineConfig)
 		shellProcessor = processor.NewLocalShell()
 	} else {
 		var err error
-		sshConnection, err = connection.NewSSH(config.SSHConfig)
+		sshConnection, err = connection.NewSSH(config.HypervisorConnectionConfig.SSHConfig)
 		if err != nil {
 			return "", err
 		}
@@ -39,7 +39,7 @@ func (handler *VirtualMachine) create(config contract.BuildVirtualMachineConfig)
 	}
 
 	// create services
-	if conn, err := connection.NewLibvirt(config.LibvirtConfig); err != nil {
+	if conn, err := connection.NewLibvirt(config.HypervisorConnectionConfig.LibvirtConfig); err != nil {
 		return "", err
 	} else {
 		libvirtService, err = service.NewLibvirt(conn)
