@@ -76,7 +76,7 @@ func (service *VirtualMachine) Create(config contract.BuildVirtualMachineConfig)
 		},
 	})
 
-	cloudInitDir := fmt.Sprintf("/tmp/%v/%v", config.GeneralVMConfig.Name, uniqueID)
+	cloudInitDir := fmt.Sprintf("/var/my-cloud-init/%v/%v", config.GeneralVMConfig.Name, uniqueID)
 
 	log.Info().Msg("creating cloud-init.iso")
 	cloudInitIsoPath, err := service.cloudInitService.WriteToDisk(context.Background(), cloudInitDir, "cloud-init.iso")
