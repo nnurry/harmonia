@@ -3,8 +3,8 @@ shared_config:
     base_vm_name: "leap-base-VM-latest"
   ssh:
     user: root
-    authorized_key_paths:
-      - "~/.ssh/shared-VM-ssh-key-id_ed25519.pub"
+    authorized_key_contents:
+      - ssh-ed25519 ABC XYZ
   cloud_init:
     nameservers:
       - "8.8.8.8"
