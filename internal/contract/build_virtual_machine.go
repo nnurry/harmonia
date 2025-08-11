@@ -24,7 +24,7 @@ type GeneralVMConfig struct {
 	NumOfVCPUs             int     `json:"vcpu"`
 	MemoryInGiB            float64 `json:"memory_gb"`
 	DiskSizeInGiB          float64 `json:"disk_gb"`
-	IsCopyOnWriteClone     bool    `json:"cow_clone"`
+	IsCopyOnWriteClone     bool    `json:"is_cow_clone"`
 }
 
 type UserVMConfig struct {
