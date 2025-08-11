@@ -1,13 +1,14 @@
 package processor
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"os/exec"
-	"strings"
 
 	"github.com/nnurry/harmonia/internal/connection"
+	"github.com/rs/zerolog/log"
 )
 
 type LocalShell struct {
@@ -26,6 +27,13 @@ func (processor *LocalShell) Execute(
 	stdout, stderr io.Writer,
 	command string, args ...string,
 ) error {
+	cmdBytesBuffer := bytes.NewBufferString(command)
+	for _, arg := range args {
+		cmdBytesBuffer.WriteString(" ")
+		cmdBytesBuffer.WriteString(arg)
+	}
+
+	log.Info().Msgf("executing command '%v' locally", cmdBytesBuffer.String())
 	cmd := exec.CommandContext(ctx, command, args...)
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
@@ -61,13 +69,18 @@ func (processor *SecureShell) Execute(
 
 	defer session.Close()
 
-	commandParts := []string{command}
-	commandParts = append(commandParts, args...)
+	cmdBytesBuffer := bytes.NewBufferString(command)
+	for _, arg := range args {
+		cmdBytesBuffer.WriteString(" ")
+		cmdBytesBuffer.WriteString(arg)
+	}
 
-	command = strings.Join(commandParts, " ")
+	command = cmdBytesBuffer.String()
 
 	session.Stdout = stdout
 	session.Stderr = stderr
+
+	log.Info().Msgf("executing command '%v' via SSH", command)
 
 	err = session.Run(command)
 	if err != nil {
