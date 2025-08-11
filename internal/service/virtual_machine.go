@@ -113,15 +113,15 @@ func (service *VirtualMachine) Create(config contract.BuildVirtualMachineConfig)
 		return "", fmt.Errorf("could not get QCOW2 disk from base VM %v", config.BaseVirtualMachineName)
 	}
 
-	basePath := baseQCOW2Disk.Source.File.File
-	basePathAsParts := strings.Split(basePath, "/")
+	baseQCOW2Path := baseQCOW2Disk.Source.File.File
+	baseQCOW2PathAsParts := strings.Split(baseQCOW2Path, "/")
 
-	newPath := fmt.Sprintf(
+	newQCOW2Path := fmt.Sprintf(
 		"%v/%v.qcow2",
-		strings.Join(basePathAsParts[:len(basePathAsParts)-1], "/"),
+		strings.Join(baseQCOW2PathAsParts[:len(baseQCOW2PathAsParts)-1], "/"),
 		config.GeneralVMConfig.Name,
 	)
-	if err = service.cloneDisk(basePath, newPath, config.DiskSizeInGiB, config.IsCopyOnWriteClone); err != nil {
+	if err = service.cloneDisk(baseQCOW2Path, newQCOW2Path, config.DiskSizeInGiB, config.IsCopyOnWriteClone); err != nil {
 		service.revertCloudInitChange <- true
 		return "", err
 	}
@@ -141,6 +141,7 @@ func (service *VirtualMachine) Create(config contract.BuildVirtualMachineConfig)
 	libvirtBuilder = libvirtBuilder.
 		WithDomainName(config.GeneralVMConfig.Name).
 		WithCiDiskPath(cloudInitIsoPath).
+		WithQcow2DiskPath(newQCOW2Path).
 		WithMemory(uint(config.GeneralVMConfig.MemoryInGiB*1024*1024), "KiB").
 		WithNumOfCpus(config.GeneralVMConfig.NumOfVCPUs)
 
