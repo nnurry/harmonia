@@ -81,6 +81,8 @@ func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain, requiredFlags []*Domain
 	baseDomainDevices := *baseDomainXml.Devices
 	newDomainXml.Devices = &baseDomainDevices
 
+	// experimenting with removing interface to clear MAC address
+
 	builder.baseDomainXml = baseDomainXml
 	builder.newDomainXml = newDomainXml
 	builder.builderFlagMap = builderFlagMap
@@ -95,6 +97,18 @@ func (builder *LibvirtDomainBuilder) getDefaultBuilderFlags() []types.BuilderFla
 		SET_CI_DISK_PATH,
 		SET_QCOW2_DISK_PATH,
 	}
+}
+
+func (builder *LibvirtDomainBuilder) WithMacAddress(address string) *LibvirtDomainBuilder {
+	log.Info().Msg("setting mac address for VM")
+	for _, domainInterface := range builder.newDomainXml.Devices.Interfaces {
+		if domainInterface.Source.Bridge.Bridge == "br0" {
+			domainInterface.MAC.Address = address
+		}
+	}
+
+	// no flag coz lazy
+	return builder
 }
 
 func (builder *LibvirtDomainBuilder) WithDomainName(name string) *LibvirtDomainBuilder {

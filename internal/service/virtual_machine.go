@@ -69,6 +69,7 @@ func (service *VirtualMachine) Create(config contract.BuildVirtualMachineConfig)
 					Dhcp4:              false,
 					IPv4Addresses:      []string{fmt.Sprintf("%v/24", config.NetworkVMConfig.IPv4Address)},
 					IPv4GatewayAddress: config.NetworkVMConfig.IPv4GatewayAddress,
+					MacAddress:         config.NetworkVMConfig.MacAddress,
 					Nameservers:        []cloudinit.Nameserver{{Addresses: config.NetworkVMConfig.Nameservers}},
 				},
 			},
@@ -137,13 +138,13 @@ func (service *VirtualMachine) Create(config contract.BuildVirtualMachineConfig)
 		return "", err
 	}
 
-	log.Info().Msgf("config: %v", config)
 	libvirtBuilder = libvirtBuilder.
 		WithDomainName(config.GeneralVMConfig.Name).
 		WithCiDiskPath(cloudInitIsoPath).
 		WithQcow2DiskPath(newQCOW2Path).
 		WithMemory(uint(config.GeneralVMConfig.MemoryInGiB*1024*1024), "KiB").
-		WithNumOfCpus(config.GeneralVMConfig.NumOfVCPUs)
+		WithNumOfCpus(config.GeneralVMConfig.NumOfVCPUs).
+		WithMacAddress(config.NetworkVMConfig.MacAddress)
 
 	newDomain, err := service.libvirtService.DefineDomainFromBuilder(libvirtBuilder)
 	if err != nil {
