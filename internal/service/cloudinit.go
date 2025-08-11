@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -113,10 +114,20 @@ func (service *CloudInit) WriteToDisk(ctx context.Context, basePath string, file
 	}
 	cmdParts = append(cmdParts, paths...)
 
-	err = service.processor.Execute(ctx, os.Stdout, os.Stderr, cmdParts[0], cmdParts[1:]...)
+	stderrBuffer := bytes.NewBuffer([]byte{})
+
+	err = service.processor.Execute(ctx, os.Stdout, stderrBuffer, cmdParts[0], cmdParts[1:]...)
 	if err != nil {
-		return "", fmt.Errorf("could not write ISO file to disk for cloud-init ISO: %v", err)
+		stdErrAsString := stderrBuffer.String()
+		log.Error().Msg(stdErrAsString)
+
+		err = fmt.Errorf("could not write ISO file to disk for cloud-init ISO: %v", stdErrAsString)
+		return "", err
 	}
+
+	// it writes to stderr instead of stdout
+	log.Info().Msgf("output of writing cloud-init.iso command: %v", stderrBuffer.String())
+
 	return isoFilePath, nil
 }
 
