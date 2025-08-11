@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -193,12 +194,19 @@ func (service *VirtualMachine) cloneDisk(basePath, newPath string, diskSizeInGiB
 			newPath,
 		}
 	}
+	stderrBuffer := bytes.NewBuffer([]byte{})
+
 	err := service.shellProcessor.Execute(
 		context.Background(),
-		os.Stdout, os.Stderr,
+		os.Stdout, stderrBuffer,
 		command, arguments...,
 	)
+
 	if err != nil {
+		stdErrAsString := stderrBuffer.String()
+		log.Error().Msg(stdErrAsString)
+
+		err = fmt.Errorf("could not clone disk: %v", stdErrAsString)
 		return err
 	}
 	return nil
