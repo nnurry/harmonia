@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/nnurry/harmonia/internal/connection"
@@ -84,6 +85,61 @@ func (handler *VirtualMachine) Create(writer http.ResponseWriter, request *http.
 		Body:    result,
 		Message: "created single virtual machine",
 	})
+}
+
+func (handler *VirtualMachine) FormatRequest(writer http.ResponseWriter, request *http.Request) {
+	contractGeneratorMap := map[string]func() any{
+		"create":       func() any { return contract.BuildVirtualMachineRequest{} },
+		"create_fleet": func() any { return contract.BuildVirtualMachineFleetRequest{} },
+	}
+
+	serializerMap := map[string]func(any) ([]byte, error){
+		"json": func(v any) ([]byte, error) { return json.MarshalIndent(v, "", " ") },
+	}
+
+	queries := request.URL.Query()
+
+	var (
+		inputData  any
+		outputData []byte
+		err        error
+	)
+
+	if contractGenerator, ok := contractGeneratorMap[queries.Get("contract")]; !ok {
+		writeResult(writer, http.StatusNotFound, contract.GenericResponse{
+			Body:    nil,
+			Message: "no matching contract to format request",
+		})
+		return
+	} else {
+		inputData = contractGenerator()
+	}
+
+	cb, err := parseBodyAndHandleError(writer, request, &inputData, true)
+	if err != nil {
+		cb()
+		return
+	}
+
+	if serializer, ok := serializerMap[queries.Get("format")]; !ok {
+		writeResult(writer, http.StatusNotFound, contract.GenericResponse{
+			Body:    nil,
+			Message: "no matching serializer to format request",
+		})
+		return
+	} else {
+		outputData, err = serializer(inputData)
+	}
+
+	if err != nil {
+		writeResult(writer, http.StatusInternalServerError, contract.GenericResponse{
+			Body:    err,
+			Message: "could not serialize data",
+		})
+		return
+	}
+
+	writeBytes(writer, http.StatusOK, outputData)
 }
 
 func (handler *VirtualMachine) CreateFleet(writer http.ResponseWriter, request *http.Request) {

@@ -13,8 +13,36 @@ import (
 )
 
 func writeResult(writer http.ResponseWriter, code int, result contract.GenericResponse) {
+	writeBytes(writer, code, result.Compile())
+}
+
+func writeBytes(writer http.ResponseWriter, code int, bytesData []byte) {
 	writer.WriteHeader(code)
-	writer.Write(result.Compile())
+	writer.Write(bytesData)
+}
+
+func readBodyFromRequestAsBytes(request *http.Request) ([]byte, error) {
+	body, err := io.ReadAll(request.Body)
+	if err != nil {
+		err = fmt.Errorf("failed to read request body as bytes: %v", err)
+	}
+	return body, err
+}
+
+func parseJSONFromBytes(bytesBody []byte, v any) error {
+	err := json.NewDecoder(bytes.NewReader(bytesBody)).Decode(v)
+	if err == nil {
+		return nil
+	}
+	return fmt.Errorf("failed to parse body as JSON: %v", err)
+}
+
+func parseYAMLFromBytes(bytesBody []byte, v any) error {
+	err := yaml.NewDecoder(bytes.NewReader(bytesBody)).Decode(v)
+	if err == nil {
+		return nil
+	}
+	return fmt.Errorf("failed to parse body as YAML: %v", err)
 }
 
 func parseBody(request *http.Request, v any, isYAMLable bool) error {
@@ -26,24 +54,20 @@ func parseBody(request *http.Request, v any, isYAMLable bool) error {
 		bytesBody []byte = nil
 	)
 
-	bytesBody, parseErr = io.ReadAll(request.Body)
+	bytesBody, parseErr = readBodyFromRequestAsBytes(request)
 	if parseErr != nil {
-		return fmt.Errorf("failed to read request body as bytes: %v", parseErr)
+		return parseErr
 	}
 
-	jsonErr = json.NewDecoder(bytes.NewReader(bytesBody)).Decode(v)
+	jsonErr = parseJSONFromBytes(bytesBody, v)
 	if jsonErr == nil {
 		return nil
-	} else {
-		jsonErr = fmt.Errorf("failed to parse body as JSON: %v", jsonErr)
 	}
 
 	if isYAMLable {
-		yamlErr = yaml.NewDecoder(bytes.NewReader(bytesBody)).Decode(v)
+		yamlErr = parseYAMLFromBytes(bytesBody, v)
 		if yamlErr == nil {
 			return nil
-		} else {
-			yamlErr = fmt.Errorf("failed to parse body as YAML: %v", yamlErr)
 		}
 	}
 

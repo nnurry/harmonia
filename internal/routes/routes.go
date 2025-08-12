@@ -15,8 +15,11 @@ func (router *Router) VirtualMachineHandler() http.Handler {
 
 	handler := handler.NewVirtualMachine()
 
-	mux.HandleFunc("POST /fleet", handler.CreateFleet)
-	mux.HandleFunc("POST /", handler.Create)
+	mux.HandleFunc("POST /create", handler.Create)
+	mux.HandleFunc("POST /create/fleet", handler.CreateFleet)
+
+	mux.HandleFunc("POST /format", handler.FormatRequest)
+
 	return mux
 }
 
