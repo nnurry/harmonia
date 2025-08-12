@@ -20,7 +20,7 @@ func NewVirtualMachine() *VirtualMachine {
 	return &VirtualMachine{}
 }
 
-func (handler *VirtualMachine) create(config contract.BuildVirtualMachineConfig) (string, error) {
+func (handler *VirtualMachine) create(config contract.VirtualMachineConfig) (string, error) {
 	var (
 		sshConnection    *connection.SSH
 		shellProcessor   ShellProcessor
@@ -59,15 +59,15 @@ func (handler *VirtualMachine) create(config contract.BuildVirtualMachineConfig)
 }
 
 func (handler *VirtualMachine) Create(writer http.ResponseWriter, request *http.Request) {
-	var createRequest contract.BuildVirtualMachineRequest
+	var createRequest contract.CreateVirtualMachineRequest
 	cb, err := parseBodyAndHandleError(writer, request, &createRequest, true)
 	if err != nil {
 		cb()
 		return
 	}
 
-	domainUuid, err := handler.create(contract.BuildVirtualMachineConfig(createRequest))
-	result := contract.BuildVirtualMachineResult{
+	domainUuid, err := handler.create(createRequest.VirtualMachineConfig)
+	result := contract.CreateVirtualMachineResult{
 		Name: createRequest.Name,
 	}
 	if err != nil {
@@ -89,8 +89,8 @@ func (handler *VirtualMachine) Create(writer http.ResponseWriter, request *http.
 
 func (handler *VirtualMachine) FormatRequest(writer http.ResponseWriter, request *http.Request) {
 	contractGeneratorMap := map[string]func() any{
-		"create":       func() any { return contract.BuildVirtualMachineRequest{} },
-		"create_fleet": func() any { return contract.BuildVirtualMachineFleetRequest{} },
+		"create":       func() any { return contract.CreateVirtualMachineRequest{} },
+		"create_fleet": func() any { return contract.CreateVirtualMachineFleetRequest{} },
 	}
 
 	serializerMap := map[string]func(any) ([]byte, error){
@@ -143,7 +143,7 @@ func (handler *VirtualMachine) FormatRequest(writer http.ResponseWriter, request
 }
 
 func (handler *VirtualMachine) CreateFleet(writer http.ResponseWriter, request *http.Request) {
-	var fleetCreateRequest contract.BuildVirtualMachineFleetRequest
+	var fleetCreateRequest contract.CreateVirtualMachineFleetRequest
 	cb, err := parseBodyAndHandleError(writer, request, &fleetCreateRequest, true)
 
 	if err != nil {
@@ -151,15 +151,15 @@ func (handler *VirtualMachine) CreateFleet(writer http.ResponseWriter, request *
 		return
 	}
 
-	result := contract.BuildVirtualMachineFleetResult{
-		SubResults: []contract.BuildVirtualMachineResult{},
+	result := contract.CreateVirtualMachineFleetResult{
+		SubResults: []contract.CreateVirtualMachineResult{},
 		Failed:     0,
 		Success:    0,
 		Total:      0,
 	}
 
 	for _, config := range fleetCreateRequest.GetCoalesced().VirtualMachineConfigs {
-		subResult := contract.BuildVirtualMachineResult{
+		subResult := contract.CreateVirtualMachineResult{
 			Name: config.Name,
 		}
 

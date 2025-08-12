@@ -2,7 +2,7 @@ package contract
 
 import "github.com/nnurry/harmonia/internal/connection"
 
-type BuildVirtualMachineConfig struct {
+type VirtualMachineConfig struct {
 	GeneralVMConfig             `json:",inline"`
 	UserVMConfig                `json:",inline"`
 	NetworkVMConfig             `json:",inline"`
@@ -41,9 +41,11 @@ type NetworkVMConfig struct {
 	Nameservers        []string `json:"nameservers"`
 }
 
-type BuildVirtualMachineRequest BuildVirtualMachineConfig
+type CreateVirtualMachineRequest struct {
+	VirtualMachineConfig `json:",inline"`
+}
 
-type BuildVirtualMachineResult struct {
+type CreateVirtualMachineResult struct {
 	UUID  string `json:"uuid,omitempty"`
 	Name  string `json:"name"`
 	Error string `json:"error,omitempty"`

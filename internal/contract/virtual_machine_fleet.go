@@ -1,8 +1,8 @@
 package contract
 
-type BuildVirtualMachineFleetRequest struct {
-	SharedConfig          FleetSharedConfig           `json:"shared_config"`
-	VirtualMachineConfigs []BuildVirtualMachineConfig `json:"virtual_machines"`
+type VirtualMachineFleetConfig struct {
+	SharedConfig          FleetSharedConfig      `json:"shared_config"`
+	VirtualMachineConfigs []VirtualMachineConfig `json:"virtual_machines"`
 }
 
 type FleetSharedConfig struct {
@@ -26,7 +26,7 @@ type NetworkSharedConfig struct {
 	Nameservers []string `json:"nameservers"`
 }
 
-func (r BuildVirtualMachineFleetRequest) GetCoalesced() BuildVirtualMachineFleetRequest {
+func (r VirtualMachineFleetConfig) GetCoalesced() VirtualMachineFleetConfig {
 	for i, vmConfig := range r.VirtualMachineConfigs {
 		if len(vmConfig.Nameservers) < 1 {
 			r.VirtualMachineConfigs[i].Nameservers = r.SharedConfig.Nameservers
@@ -57,9 +57,13 @@ func (r BuildVirtualMachineFleetRequest) GetCoalesced() BuildVirtualMachineFleet
 	return r
 }
 
-type BuildVirtualMachineFleetResult struct {
-	SubResults []BuildVirtualMachineResult `json:"sub_results"`
-	Failed     int                         `json:"failed"`
-	Success    int                         `json:"success"`
-	Total      int                         `json:"total"`
+type CreateVirtualMachineFleetRequest struct {
+	VirtualMachineFleetConfig `json:",inline"`
+}
+
+type CreateVirtualMachineFleetResult struct {
+	SubResults []CreateVirtualMachineResult `json:"sub_results"`
+	Failed     int                          `json:"failed"`
+	Success    int                          `json:"success"`
+	Total      int                          `json:"total"`
 }

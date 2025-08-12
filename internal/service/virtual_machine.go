@@ -37,7 +37,7 @@ func NewVirtualMachine(
 
 }
 
-func (service *VirtualMachine) Create(config contract.BuildVirtualMachineConfig) (string, error) {
+func (service *VirtualMachine) Create(config contract.VirtualMachineConfig) (string, error) {
 	uniqueID := utils.GenerateUniqueTimestamp()
 
 	// make sure base VM already exists
