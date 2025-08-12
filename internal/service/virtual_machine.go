@@ -123,7 +123,7 @@ func (service *VirtualMachine) Create(config contract.VirtualMachineConfig) (str
 		return "", err
 	}
 	logger.Info("created cloud-init.iso")
-	defer service.Cleanup(cloudInitDir)
+	defer service.CleanupUponFailure(cloudInitDir)
 
 	// create VM
 	logger.Infof("creating libvirt domain from %v\n", config.GeneralVMConfig.BaseVirtualMachineName)
@@ -201,7 +201,61 @@ func (service *VirtualMachine) Create(config contract.VirtualMachineConfig) (str
 	return newDomain.GetUUIDString()
 }
 
-func (service *VirtualMachine) Cleanup(cloudInitDir string) error {
+func (service *VirtualMachine) Delete(config contract.VirtualMachineConfig) (string, error) {
+	// get current domain
+	domain, err := service.libvirtService.GetDomainByName(config.GeneralVMConfig.Name)
+	if err != nil {
+		return "", err
+	}
+
+	domainXMLString, err := domain.GetXMLDesc(libvirt.DOMAIN_XML_SECURE)
+	if err != nil {
+		return "", err
+	}
+
+	domainXML := &libvirtxml.Domain{}
+	err = domainXML.Unmarshal(domainXMLString)
+	if err != nil {
+		return "", err
+	}
+
+	disksToBeDeleted := []libvirtxml.DomainDisk{}
+
+	// get QCOW2 + CI disk path
+	for _, disk := range domainXML.Devices.Disks {
+		if (disk.Device == "disk" && disk.Driver.Type == "qcow2") ||
+			(disk.Device == "cdrom" && disk.Driver.Type == "raw") {
+			disksToBeDeleted = append(disksToBeDeleted, disk)
+		}
+	}
+
+	logger.Infof("destroying domain '%v'", domainXML.Name)
+	err = domain.DestroyFlags(libvirt.DOMAIN_DESTROY_DEFAULT)
+	if err != nil {
+		return domainXML.UUID, err
+	}
+
+	logger.Infof("undefining domain '%v'", domainXML.Name)
+	err = domain.Undefine()
+	if err != nil {
+		return domainXML.UUID, err
+	}
+
+	for _, disk := range disksToBeDeleted {
+		logger.Infof("deleting disk '%v'", disk.Source.File.File)
+		service.shellProcessor.Execute(
+			context.Background(),
+			os.Stdout, os.Stderr,
+			"rm",
+			"-f",
+			disk.Source.File.File,
+		)
+	}
+
+	return domainXML.UUID, nil
+}
+
+func (service *VirtualMachine) CleanupUponFailure(cloudInitDir string) error {
 	// revert cloud-init change
 	if <-service.revertCloudInitChange {
 		err := service.cloudInitService.RemoveFromDisk(context.Background(), cloudInitDir)
@@ -211,10 +265,6 @@ func (service *VirtualMachine) Cleanup(cloudInitDir string) error {
 		logger.Info("removed cloud-init iso after failing to create VM")
 	}
 	return nil
-}
-
-func (service *VirtualMachine) Delete(config contract.VirtualMachineConfig) (string, error) {
-	return "", fmt.Errorf("unimplemented")
 }
 
 func (service *VirtualMachine) cloneDisk(basePath, newPath string, diskSizeInGiB float64, isCopyOnWrite bool) error {
