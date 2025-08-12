@@ -11,7 +11,6 @@ import (
 	shellcmd "github.com/nnurry/harmonia/cmd/cli/shell"
 	"github.com/nnurry/harmonia/internal/logger"
 	"github.com/nnurry/harmonia/internal/server"
-	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 )
 
@@ -39,7 +38,7 @@ func main() {
 					osChan := make(chan os.Signal, 1)
 					signal.Notify(osChan, syscall.SIGTERM, syscall.SIGINT)
 
-					log.Info().Msg("Starting Harmonia API server...")
+					logger.Info("Starting Harmonia API server...")
 					httpSrv := server.Init()
 
 					go server.Cleanup(httpSrv, osChan, &wg)

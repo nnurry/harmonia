@@ -9,9 +9,9 @@ import (
 
 	"github.com/nnurry/harmonia/internal/builder"
 	"github.com/nnurry/harmonia/internal/contract"
+	"github.com/nnurry/harmonia/internal/logger"
 	"github.com/nnurry/harmonia/internal/service/cloudinit"
 	"github.com/nnurry/harmonia/pkg/utils"
-	"github.com/rs/zerolog/log"
 	"libvirt.org/go/libvirt"
 	"libvirt.org/go/libvirtxml"
 )
@@ -78,16 +78,16 @@ func (service *VirtualMachine) Create(config contract.BuildVirtualMachineConfig)
 
 	cloudInitDir := fmt.Sprintf("/var/my-cloud-init/%v/%v", config.GeneralVMConfig.Name, uniqueID)
 
-	log.Info().Msg("creating cloud-init.iso")
+	logger.Info("creating cloud-init.iso")
 	cloudInitIsoPath, err := service.cloudInitService.WriteToDisk(context.Background(), cloudInitDir, "cloud-init.iso")
 	if err != nil {
 		return "", err
 	}
-	log.Info().Msg("created cloud-init.iso")
+	logger.Info("created cloud-init.iso")
 	defer service.Cleanup(cloudInitDir)
 
 	// create VM
-	log.Info().Msgf("creating libvirt domain from %v\n", config.GeneralVMConfig.BaseVirtualMachineName)
+	logger.Infof("creating libvirt domain from %v\n", config.GeneralVMConfig.BaseVirtualMachineName)
 
 	baseDomainXMLDesc, err := baseDomain.GetXMLDesc(libvirt.DOMAIN_XML_SECURE)
 	if err != nil {
@@ -133,7 +133,7 @@ func (service *VirtualMachine) Create(config contract.BuildVirtualMachineConfig)
 		false,
 	)
 	if err != nil {
-		log.Info().Msgf("failed to create libvirt domain builder: %v\n", err)
+		logger.Infof("failed to create libvirt domain builder: %v\n", err)
 		service.revertCloudInitChange <- true
 		return "", err
 	}
@@ -151,12 +151,12 @@ func (service *VirtualMachine) Create(config contract.BuildVirtualMachineConfig)
 		service.revertCloudInitChange <- true
 		return "", err
 	}
-	log.Info().Msg("created libvirt domain")
-	log.Info().Msg("starting VM")
+	logger.Info("created libvirt domain")
+	logger.Info("starting VM")
 	if err = newDomain.Create(); err != nil {
 		return "", fmt.Errorf("failed to start VM")
 	}
-	log.Info().Msg("started VM")
+	logger.Info("started VM")
 
 	service.revertCloudInitChange <- false
 	return newDomain.GetUUIDString()
@@ -169,7 +169,7 @@ func (service *VirtualMachine) Cleanup(cloudInitDir string) error {
 		if err != nil {
 			return fmt.Errorf("failed to remove cloud-init iso after failing to create VM: %v", err)
 		}
-		log.Info().Msg("removed cloud-init iso after failing to create VM")
+		logger.Info("removed cloud-init iso after failing to create VM")
 	}
 	return nil
 }
@@ -206,7 +206,7 @@ func (service *VirtualMachine) cloneDisk(basePath, newPath string, diskSizeInGiB
 
 	if err != nil {
 		stdErrAsString := stderrBuffer.String()
-		log.Error().Msg(stdErrAsString)
+		logger.Error(stdErrAsString)
 
 		err = fmt.Errorf("could not clone disk: %v", stdErrAsString)
 		return err

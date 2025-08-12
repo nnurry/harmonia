@@ -8,7 +8,7 @@ import (
 	"os/exec"
 
 	"github.com/nnurry/harmonia/internal/connection"
-	"github.com/rs/zerolog/log"
+	"github.com/nnurry/harmonia/internal/logger"
 )
 
 type LocalShell struct {
@@ -33,7 +33,7 @@ func (processor *LocalShell) Execute(
 		cmdBytesBuffer.WriteString(arg)
 	}
 
-	log.Info().Msgf("executing command '%v' locally", cmdBytesBuffer.String())
+	logger.Infof("executing command '%v' locally", cmdBytesBuffer.String())
 	cmd := exec.CommandContext(ctx, command, args...)
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
@@ -80,7 +80,7 @@ func (processor *SecureShell) Execute(
 	session.Stdout = stdout
 	session.Stderr = stderr
 
-	log.Info().Msgf("executing command '%v' via SSH", command)
+	logger.Infof("executing command '%v' via SSH", command)
 
 	err = session.Run(command)
 	if err != nil {

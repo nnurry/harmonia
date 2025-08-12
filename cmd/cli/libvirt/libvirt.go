@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	"github.com/nnurry/harmonia/internal/connection"
+	"github.com/nnurry/harmonia/internal/logger"
 	"github.com/nnurry/harmonia/pkg/types"
 	"github.com/nnurry/harmonia/pkg/utils"
-	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 )
 
@@ -74,7 +74,7 @@ func (command *LibvirtCommand) Build() *cli.Command {
 			return fmt.Errorf("could not establish Libvirt connection: %v", err)
 		}
 
-		log.Info().Msgf("Setting Libvirt connection with URL = %v\n", libvirtConnection.URL())
+		logger.Infof("Setting Libvirt connection with URL = %v\n", libvirtConnection.URL())
 
 		ctx.Context = context.WithValue(ctx.Context, LIBVIRT_INTERNAL_CONNECTION_CTX_KEY, libvirtConnection)
 		return nil

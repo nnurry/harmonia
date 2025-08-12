@@ -3,8 +3,8 @@ package builder
 import (
 	"fmt"
 
+	"github.com/nnurry/harmonia/internal/logger"
 	"github.com/nnurry/harmonia/pkg/types"
-	"github.com/rs/zerolog/log"
 	"libvirt.org/go/libvirt"
 	"libvirt.org/go/libvirtxml"
 )
@@ -100,7 +100,7 @@ func (builder *LibvirtDomainBuilder) getDefaultBuilderFlags() []types.BuilderFla
 }
 
 func (builder *LibvirtDomainBuilder) WithMacAddress(address string) *LibvirtDomainBuilder {
-	log.Info().Msg("setting mac address for VM")
+	logger.Info("setting mac address for VM")
 	for _, domainInterface := range builder.newDomainXml.Devices.Interfaces {
 		if domainInterface.Source.Bridge.Bridge == "br0" {
 			domainInterface.MAC.Address = address
@@ -112,7 +112,7 @@ func (builder *LibvirtDomainBuilder) WithMacAddress(address string) *LibvirtDoma
 }
 
 func (builder *LibvirtDomainBuilder) WithDomainName(name string) *LibvirtDomainBuilder {
-	log.Info().Msg("setting domain name for VM")
+	logger.Info("setting domain name for VM")
 	builder.newDomainXml.Name = name
 
 	builder.builderFlagMap.MarkAsChecked(SET_VM_NAME)
@@ -120,7 +120,7 @@ func (builder *LibvirtDomainBuilder) WithDomainName(name string) *LibvirtDomainB
 }
 
 func (builder *LibvirtDomainBuilder) WithNumOfCpus(numOfCpus int) *LibvirtDomainBuilder {
-	log.Info().Msg("setting num of CPUs for VM")
+	logger.Info("setting num of CPUs for VM")
 	builder.newDomainXml.CPU = &libvirtxml.DomainCPU{
 		Mode: builder.baseDomainXml.CPU.Mode,
 		Topology: &libvirtxml.DomainCPUTopology{
@@ -140,7 +140,7 @@ func (builder *LibvirtDomainBuilder) WithNumOfCpus(numOfCpus int) *LibvirtDomain
 }
 
 func (builder *LibvirtDomainBuilder) WithMemory(memory uint, unit string) *LibvirtDomainBuilder {
-	log.Info().Msg("setting memory for VM")
+	logger.Info("setting memory for VM")
 
 	builder.newDomainXml.Memory = &libvirtxml.DomainMemory{Value: memory, Unit: unit}
 	builder.newDomainXml.CurrentMemory = &libvirtxml.DomainCurrentMemory{Value: memory, Unit: unit}
@@ -150,7 +150,7 @@ func (builder *LibvirtDomainBuilder) WithMemory(memory uint, unit string) *Libvi
 }
 
 func (builder *LibvirtDomainBuilder) WithQcow2DiskPath(path string) *LibvirtDomainBuilder {
-	log.Info().Msg("setting QCOW2 disk path for VM")
+	logger.Info("setting QCOW2 disk path for VM")
 
 	builder.qcow2DomainDisk = &libvirtxml.DomainDisk{
 		Device: "disk",
@@ -165,7 +165,7 @@ func (builder *LibvirtDomainBuilder) WithQcow2DiskPath(path string) *LibvirtDoma
 }
 
 func (builder *LibvirtDomainBuilder) WithCiDiskPath(path string) *LibvirtDomainBuilder {
-	log.Info().Msg("setting cloud-init disk path for VM")
+	logger.Info("setting cloud-init disk path for VM")
 
 	builder.ciDomainDisk = &libvirtxml.DomainDisk{
 		Device:   "cdrom",

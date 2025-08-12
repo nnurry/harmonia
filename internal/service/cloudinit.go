@@ -8,9 +8,9 @@ import (
 	"os"
 
 	"github.com/nnurry/harmonia/internal/connection"
+	"github.com/nnurry/harmonia/internal/logger"
 	"github.com/nnurry/harmonia/internal/service/cloudinit"
 	"github.com/pkg/sftp"
-	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -31,14 +31,14 @@ type cloudInitISOIngredient interface {
 }
 
 func NewCloudInit(processor ShellProcessor, sshConnection *connection.SSH) (*CloudInit, error) {
-	log.Info().Msg("creating SFTP client")
+	logger.Info("creating SFTP client")
 
 	sftpClient, err := sftp.NewClient(sshConnection.Client())
 	if err != nil {
 		return nil, fmt.Errorf("could not create SFTP client for cloud-init service: %v", err)
 	}
 
-	log.Info().Msg("created SFTP client")
+	logger.Info("created SFTP client")
 	return &CloudInit{processor: processor, sftpClient: sftpClient}, nil
 }
 
@@ -119,14 +119,14 @@ func (service *CloudInit) WriteToDisk(ctx context.Context, basePath string, file
 	err = service.processor.Execute(ctx, os.Stdout, stderrBuffer, cmdParts[0], cmdParts[1:]...)
 	if err != nil {
 		stdErrAsString := stderrBuffer.String()
-		log.Error().Msg(stdErrAsString)
+		logger.Error(stdErrAsString)
 
 		err = fmt.Errorf("could not write ISO file to disk for cloud-init ISO: %v", stdErrAsString)
 		return "", err
 	}
 
 	// it writes to stderr instead of stdout
-	log.Info().Msgf("output of writing cloud-init.iso command: %v", stderrBuffer.String())
+	logger.Infof("output of writing cloud-init.iso command: %v", stderrBuffer.String())
 
 	return isoFilePath, nil
 }

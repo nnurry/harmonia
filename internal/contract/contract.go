@@ -3,7 +3,7 @@ package contract
 import (
 	"encoding/json"
 
-	"github.com/rs/zerolog/log"
+	"github.com/nnurry/harmonia/internal/logger"
 )
 
 type GenericResponse struct {
@@ -14,7 +14,7 @@ type GenericResponse struct {
 func (r GenericResponse) Compile() []byte {
 	data, err := json.Marshal(r)
 	if err != nil {
-		log.Err(err).Msg("got into error while serializing response")
+		logger.Err(err, "got into error while serializing response")
 	}
 	return data
 }

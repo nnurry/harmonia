@@ -5,10 +5,10 @@ import (
 	"os"
 
 	"github.com/nnurry/harmonia/internal/connection"
+	"github.com/nnurry/harmonia/internal/logger"
 	"github.com/nnurry/harmonia/internal/processor"
 	"github.com/nnurry/harmonia/pkg/types"
 	"github.com/nnurry/harmonia/pkg/utils"
-	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 )
 
@@ -90,7 +90,7 @@ func (command *ShellCommand) Handler() func(ctx *cli.Context) error {
 		}
 
 		argsArray := ctx.Args().Slice()
-		log.Info().Msgf("executing shell command with %v processor\n", shellProcessor.Name())
+		logger.Infof("executing shell command with %v processor\n", shellProcessor.Name())
 		err := shellProcessor.Execute(ctx.Context, os.Stdout, os.Stderr, argsArray[0], argsArray[1:]...)
 
 		if err != nil {

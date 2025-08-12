@@ -6,9 +6,9 @@ import (
 
 	"github.com/nnurry/harmonia/internal/connection"
 	"github.com/nnurry/harmonia/internal/contract"
+	"github.com/nnurry/harmonia/internal/logger"
 	"github.com/nnurry/harmonia/internal/processor"
 	"github.com/nnurry/harmonia/internal/service"
-	"github.com/rs/zerolog/log"
 )
 
 type responseCallback func()
@@ -163,12 +163,12 @@ func (handler *VirtualMachine) CreateFleet(writer http.ResponseWriter, request *
 			Name: config.Name,
 		}
 
-		log.Info().Msgf("creating VM %v", config.GeneralVMConfig.Name)
+		logger.Infof("creating VM %v", config.GeneralVMConfig.Name)
 		domainUuid, err := handler.create(config)
 
 		if err != nil {
 			subResult.Error = err.Error()
-			log.Error().Msgf("failed to create VM %v: %v", config.GeneralVMConfig.Name, subResult.Error)
+			logger.Errorf("failed to create VM %v: %v", config.GeneralVMConfig.Name, subResult.Error)
 			result.Failed++
 		} else {
 			subResult.UUID = domainUuid

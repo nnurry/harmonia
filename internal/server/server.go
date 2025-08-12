@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/nnurry/harmonia/internal/logger"
 	"github.com/nnurry/harmonia/internal/routes"
-	"github.com/rs/zerolog/log"
 )
 
 func Init() *http.Server {
@@ -28,27 +28,27 @@ func Init() *http.Server {
 
 func Start(server *http.Server, osChan chan os.Signal, wg *sync.WaitGroup) {
 	wg.Add(1)
-	log.Info().Msgf("serving HTTP on %v", server.Addr)
+	logger.Infof("serving HTTP on %v", server.Addr)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Error().Msgf("can't start server: %v", err)
+		logger.Errorf("can't start server: %v", err)
 		osChan <- syscall.SIGTERM
 	}
 }
 
 func Cleanup(server *http.Server, osChan chan os.Signal, wg *sync.WaitGroup) {
 	sig := <-osChan
-	log.Info().Msgf("encountered OS signal %v", sig.String())
+	logger.Infof("encountered OS signal %v", sig.String())
 
 	close(osChan)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(5*time.Microsecond))
 	defer cancel()
 
-	log.Info().Msg("shutting down HTTP server")
+	logger.Info("shutting down HTTP server")
 	if err := server.Shutdown(ctx); err != nil {
-		log.Info().Msgf("called Shutdown() on HTTP server: %v", err)
+		logger.Infof("called Shutdown() on HTTP server: %v", err)
 	}
 
-	log.Info().Msg("successfully shut down HTTP server")
+	logger.Info("successfully shut down HTTP server")
 	wg.Done()
 }
