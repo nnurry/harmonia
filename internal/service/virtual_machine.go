@@ -8,8 +8,10 @@ import (
 	"strings"
 
 	"github.com/nnurry/harmonia/internal/builder"
+	"github.com/nnurry/harmonia/internal/connection"
 	"github.com/nnurry/harmonia/internal/contract"
 	"github.com/nnurry/harmonia/internal/logger"
+	"github.com/nnurry/harmonia/internal/processor"
 	"github.com/nnurry/harmonia/internal/service/cloudinit"
 	"github.com/nnurry/harmonia/pkg/utils"
 	"libvirt.org/go/libvirt"
@@ -35,6 +37,43 @@ func NewVirtualMachine(
 		revertCloudInitChange: make(chan bool, 1),
 	}, nil
 
+}
+
+func NewVirtualMachineFromVirtualMachineConfig(config contract.VirtualMachineConfig) (*VirtualMachine, error) {
+	var (
+		sshConnection    *connection.SSH
+		shellProcessor   ShellProcessor
+		libvirtService   LibvirtService
+		cloudInitService CloudInitService
+	)
+
+	if config.HypervisorConnectionConfig.IsLocalShell {
+		shellProcessor = processor.NewLocalShell()
+	} else {
+		var err error
+		sshConnection, err = connection.NewSSH(config.HypervisorConnectionConfig.SSHConfig)
+		if err != nil {
+			return nil, err
+		}
+		shellProcessor = processor.NewSecureShell(sshConnection)
+	}
+
+	// create services
+	if conn, err := connection.NewLibvirt(config.HypervisorConnectionConfig.LibvirtConfig); err != nil {
+		return nil, err
+	} else {
+		libvirtService, err = NewLibvirt(conn)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	cloudInitService, err := NewCloudInit(shellProcessor, sshConnection)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewVirtualMachine(libvirtService, cloudInitService, shellProcessor)
 }
 
 func (service *VirtualMachine) Create(config contract.VirtualMachineConfig) (string, error) {
@@ -172,6 +211,10 @@ func (service *VirtualMachine) Cleanup(cloudInitDir string) error {
 		logger.Info("removed cloud-init iso after failing to create VM")
 	}
 	return nil
+}
+
+func (service *VirtualMachine) Delete(config contract.VirtualMachineConfig) (string, error) {
+	return "", fmt.Errorf("unimplemented")
 }
 
 func (service *VirtualMachine) cloneDisk(basePath, newPath string, diskSizeInGiB float64, isCopyOnWrite bool) error {

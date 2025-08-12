@@ -50,3 +50,9 @@ type CreateVirtualMachineResult struct {
 	Name  string `json:"name"`
 	Error string `json:"error,omitempty"`
 }
+
+type DeleteVirtualMachineResult struct {
+	UUID  string `json:"uuid,omitempty"`
+	Name  string `json:"name"`
+	Error string `json:"error,omitempty"`
+}

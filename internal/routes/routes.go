@@ -17,6 +17,7 @@ func (router *Router) VirtualMachineHandler() http.Handler {
 
 	mux.HandleFunc("POST /create", handler.Create)
 	mux.HandleFunc("POST /create/fleet", handler.CreateFleet)
+	mux.HandleFunc("POST /delete/fleet", handler.DeleteFleet)
 
 	mux.HandleFunc("POST /format", handler.FormatRequest)
 

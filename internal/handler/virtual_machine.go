@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/nnurry/harmonia/internal/connection"
 	"github.com/nnurry/harmonia/internal/contract"
 	"github.com/nnurry/harmonia/internal/logger"
-	"github.com/nnurry/harmonia/internal/processor"
 	"github.com/nnurry/harmonia/internal/service"
 )
 
@@ -21,41 +19,23 @@ func NewVirtualMachine() *VirtualMachine {
 }
 
 func (handler *VirtualMachine) create(config contract.VirtualMachineConfig) (string, error) {
-	var (
-		sshConnection    *connection.SSH
-		shellProcessor   ShellProcessor
-		libvirtService   LibvirtService
-		cloudInitService CloudInitService
-	)
+	virtualMachineService, err := service.NewVirtualMachineFromVirtualMachineConfig(config)
 
-	if config.HypervisorConnectionConfig.IsLocalShell {
-		shellProcessor = processor.NewLocalShell()
-	} else {
-		var err error
-		sshConnection, err = connection.NewSSH(config.HypervisorConnectionConfig.SSHConfig)
-		if err != nil {
-			return "", err
-		}
-		shellProcessor = processor.NewSecureShell(sshConnection)
-	}
-
-	// create services
-	if conn, err := connection.NewLibvirt(config.HypervisorConnectionConfig.LibvirtConfig); err != nil {
-		return "", err
-	} else {
-		libvirtService, err = service.NewLibvirt(conn)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	cloudInitService, err := service.NewCloudInit(shellProcessor, sshConnection)
 	if err != nil {
-		return "", err
+		return "", nil
 	}
 
-	virtualMachineService, _ := service.NewVirtualMachine(libvirtService, cloudInitService, shellProcessor)
 	return virtualMachineService.Create(config)
+}
+
+func (handler *VirtualMachine) delete(config contract.VirtualMachineConfig) (string, error) {
+	virtualMachineService, err := service.NewVirtualMachineFromVirtualMachineConfig(config)
+
+	if err != nil {
+		return "", nil
+	}
+
+	return virtualMachineService.Delete(config)
 }
 
 func (handler *VirtualMachine) Create(writer http.ResponseWriter, request *http.Request) {
@@ -188,6 +168,63 @@ func (handler *VirtualMachine) CreateFleet(writer http.ResponseWriter, request *
 		}
 	} else {
 		message = "created virtual machine fleet"
+	}
+
+	writeResult(
+		writer, http.StatusOK,
+		contract.GenericResponse{
+			Body:    result,
+			Message: message,
+		},
+	)
+}
+
+func (handler *VirtualMachine) DeleteFleet(writer http.ResponseWriter, request *http.Request) {
+	var fleetDeleteRequest contract.DeleteVirtualMachineFleetRequest
+	cb, err := parseBodyAndHandleError(writer, request, &fleetDeleteRequest, true)
+
+	if err != nil {
+		cb()
+		return
+	}
+
+	result := contract.DeleteVirtualMachineFleetResult{
+		SubResults: []contract.DeleteVirtualMachineResult{},
+		Failed:     0,
+		Success:    0,
+		Total:      0,
+	}
+
+	for _, config := range fleetDeleteRequest.GetCoalesced().VirtualMachineConfigs {
+		subResult := contract.DeleteVirtualMachineResult{
+			Name: config.Name,
+		}
+
+		logger.Infof("creating VM %v", config.GeneralVMConfig.Name)
+		domainUuid, err := handler.delete(config)
+
+		if err != nil {
+			subResult.Error = err.Error()
+			logger.Errorf("failed to delete VM %v: %v", config.GeneralVMConfig.Name, subResult.Error)
+			result.Failed++
+		} else {
+			subResult.UUID = domainUuid
+			result.Success++
+		}
+		result.Total++
+
+		result.SubResults = append(result.SubResults, subResult)
+	}
+
+	var message string
+	if result.Failed > 0 {
+		if result.Failed == result.Total {
+			message = "failed to delete virtual machine fleet"
+		} else {
+			message = "deleted virtual machine fleet with partial failures"
+		}
+	} else {
+		message = "deleted virtual machine fleet"
 	}
 
 	writeResult(

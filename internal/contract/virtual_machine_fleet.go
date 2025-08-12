@@ -67,3 +67,15 @@ type CreateVirtualMachineFleetResult struct {
 	Success    int                          `json:"success"`
 	Total      int                          `json:"total"`
 }
+
+// Same as CreateVirtualMachineFleetRequest
+type DeleteVirtualMachineFleetRequest struct {
+	VirtualMachineFleetConfig `json:",inline"`
+}
+
+type DeleteVirtualMachineFleetResult struct {
+	SubResults []DeleteVirtualMachineResult `json:"sub_results"`
+	Failed     int                          `json:"failed"`
+	Success    int                          `json:"success"`
+	Total      int                          `json:"total"`
+}
