@@ -1,5 +1,7 @@
 package contract
 
+import "fmt"
+
 type VirtualMachineFleetConfig struct {
 	SharedConfig          FleetSharedConfig      `json:"shared_config"`
 	VirtualMachineConfigs []VirtualMachineConfig `json:"virtual_machines"`
@@ -13,7 +15,8 @@ type FleetSharedConfig struct {
 }
 
 type GeneralSharedConfig struct {
-	BaseVirtualMachineName string `json:"base_vm_name"`
+	BaseVirtualMachineName  string `json:"base_vm_name"`
+	VirtualMachineFleetName string `json:"fleet_name"`
 }
 
 type SSHSharedConfig struct {
@@ -51,6 +54,14 @@ func (r VirtualMachineFleetConfig) GetCoalesced() VirtualMachineFleetConfig {
 		if vmConfig.HypervisorConnectionConfig == nil {
 			sharedHypervisorConnectionConfig := *r.SharedConfig.HypervisorConnectionConfig
 			r.VirtualMachineConfigs[i].HypervisorConnectionConfig = &sharedHypervisorConnectionConfig
+		}
+
+		if r.SharedConfig.GeneralSharedConfig.VirtualMachineFleetName != "" {
+			r.VirtualMachineConfigs[i].GeneralVMConfig.Name = fmt.Sprintf(
+				"%v-%v",
+				r.SharedConfig.GeneralSharedConfig.VirtualMachineFleetName,
+				r.VirtualMachineConfigs[i].GeneralVMConfig.Name,
+			)
 		}
 	}
 
