@@ -16,6 +16,7 @@ type FleetSharedConfig struct {
 
 type GeneralSharedConfig struct {
 	BaseVirtualMachineName  string `json:"base_vm_name"`
+	CloudImagePath          string `json:"cloud_image_path"`
 	VirtualMachineFleetName string `json:"fleet_name"`
 }
 
@@ -49,6 +50,10 @@ func (r VirtualMachineFleetConfig) GetCoalesced() VirtualMachineFleetConfig {
 
 		if vmConfig.BaseVirtualMachineName == "" {
 			r.VirtualMachineConfigs[i].BaseVirtualMachineName = r.SharedConfig.BaseVirtualMachineName
+		}
+
+		if vmConfig.CloudImagePath == "" {
+			r.VirtualMachineConfigs[i].CloudImagePath = r.SharedConfig.CloudImagePath
 		}
 
 		if vmConfig.HypervisorConnectionConfig == nil {

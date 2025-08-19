@@ -79,10 +79,37 @@ func NewVirtualMachineFromVirtualMachineConfig(config contract.VirtualMachineCon
 func (service *VirtualMachine) Create(config contract.VirtualMachineConfig) (string, error) {
 	uniqueID := utils.GenerateUniqueTimestamp()
 
+	var baseDomain *libvirt.Domain
+
 	// make sure base VM already exists
 	baseDomain, err := service.libvirtService.GetDomainByName(config.GeneralVMConfig.BaseVirtualMachineName)
 	if err != nil {
 		return "", err
+	}
+
+	baseDomainXMLDesc, err := baseDomain.GetXMLDesc(libvirt.DOMAIN_XML_SECURE)
+	if err != nil {
+		service.revertCloudInitChange <- true
+		return "", err
+	}
+	baseDomainXML := &libvirtxml.Domain{}
+	err = baseDomainXML.Unmarshal(baseDomainXMLDesc)
+	if err != nil {
+		service.revertCloudInitChange <- true
+		return "", err
+	}
+
+	var baseQCOW2Disk *libvirtxml.DomainDisk
+	for _, disk := range baseDomainXML.Devices.Disks {
+		if disk.Device == "disk" && disk.Driver.Type == "qcow2" {
+			baseQCOW2Disk = &disk
+			break
+		}
+	}
+
+	if baseQCOW2Disk == nil {
+		service.revertCloudInitChange <- true
+		return "", fmt.Errorf("could not get QCOW2 disk from base VM %v", config.BaseVirtualMachineName)
 	}
 
 	// create cloud-init ISO
@@ -128,31 +155,6 @@ func (service *VirtualMachine) Create(config contract.VirtualMachineConfig) (str
 	// create VM
 	logger.Infof("creating libvirt domain from %v\n", config.GeneralVMConfig.BaseVirtualMachineName)
 
-	baseDomainXMLDesc, err := baseDomain.GetXMLDesc(libvirt.DOMAIN_XML_SECURE)
-	if err != nil {
-		service.revertCloudInitChange <- true
-		return "", err
-	}
-	baseDomainXML := &libvirtxml.Domain{}
-	err = baseDomainXML.Unmarshal(baseDomainXMLDesc)
-	if err != nil {
-		service.revertCloudInitChange <- true
-		return "", err
-	}
-
-	var baseQCOW2Disk *libvirtxml.DomainDisk
-	for _, disk := range baseDomainXML.Devices.Disks {
-		if disk.Device == "disk" && disk.Driver.Type == "qcow2" {
-			baseQCOW2Disk = &disk
-			break
-		}
-	}
-
-	if baseQCOW2Disk == nil {
-		service.revertCloudInitChange <- true
-		return "", fmt.Errorf("could not get QCOW2 disk from base VM %v", config.BaseVirtualMachineName)
-	}
-
 	baseQCOW2Path := baseQCOW2Disk.Source.File.File
 	baseQCOW2PathAsParts := strings.Split(baseQCOW2Path, "/")
 
@@ -166,7 +168,7 @@ func (service *VirtualMachine) Create(config contract.VirtualMachineConfig) (str
 		return "", err
 	}
 
-	libvirtBuilder, err := builder.NewLibvirtDomainBuilder(
+	libvirtBuilder, err := builder.NewLibvirtDomainBuilderFromBaseDomain(
 		baseDomain,
 		[]*builder.DomainBuilderFlag{builder.SET_VM_NAME}, // no need any flag
 		false,

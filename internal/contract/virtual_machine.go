@@ -21,6 +21,7 @@ type HypervisorConnectionConfig struct {
 type GeneralVMConfig struct {
 	Name                   string  `json:"name"`
 	BaseVirtualMachineName string  `json:"base_vm_name"`
+	CloudImagePath         string  `json:"cloud_image_path"`
 	NumOfVCPUs             int     `json:"vcpu"`
 	MemoryInGiB            float64 `json:"memory_gb"`
 	DiskSizeInGiB          float64 `json:"disk_gb"`

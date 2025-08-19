@@ -26,15 +26,15 @@ var (
 )
 
 type LibvirtDomainBuilder struct {
-	baseDomainXml   *libvirtxml.Domain
-	newDomainXml    *libvirtxml.Domain
-	qcow2DomainDisk *libvirtxml.DomainDisk
-	ciDomainDisk    *libvirtxml.DomainDisk
+	BaseDomainXml       *libvirtxml.Domain
+	NewDomainXml        *libvirtxml.Domain
+	QCOW2DomainDisk     *libvirtxml.DomainDisk
+	CloudInitDomainDisk *libvirtxml.DomainDisk
 
 	builderFlagMap *types.BuilderFlagMap
 }
 
-func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain, requiredFlags []*DomainBuilderFlag, useDefaultBuilderFlags bool) (*LibvirtDomainBuilder, error) {
+func NewLibvirtDomainBuilderFromBaseDomain(baseDomain *libvirt.Domain, requiredFlags []*DomainBuilderFlag, useDefaultBuilderFlags bool) (*LibvirtDomainBuilder, error) {
 	castedRequiredFlags := []types.BuilderFlag{}
 
 	for _, flag := range requiredFlags {
@@ -83,9 +83,33 @@ func NewLibvirtDomainBuilder(baseDomain *libvirt.Domain, requiredFlags []*Domain
 
 	// experimenting with removing interface to clear MAC address
 
-	builder.baseDomainXml = baseDomainXml
-	builder.newDomainXml = newDomainXml
+	builder.BaseDomainXml = baseDomainXml
+	builder.NewDomainXml = newDomainXml
 	builder.builderFlagMap = builderFlagMap
+	return builder, nil
+}
+
+func NewLibvirtDomainBuilder() (*LibvirtDomainBuilder, error) {
+	builderFlagMap, _ := types.NewEmptyFlapMap()
+
+	newDomainXml := &libvirtxml.Domain{
+		Type: "kvm",
+		PM: &libvirtxml.DomainPM{
+			SuspendToMem:  &libvirtxml.DomainPMPolicy{Enabled: "no"},
+			SuspendToDisk: &libvirtxml.DomainPMPolicy{Enabled: "no"},
+		},
+	}
+
+	newDomainXml.Type = "kvm"
+
+	newDomainXml.PM = &libvirtxml.DomainPM{
+		SuspendToMem:  &libvirtxml.DomainPMPolicy{Enabled: "no"},
+		SuspendToDisk: &libvirtxml.DomainPMPolicy{Enabled: "no"},
+	}
+	builder := &LibvirtDomainBuilder{}
+	builder.NewDomainXml = newDomainXml
+	builder.builderFlagMap = builderFlagMap
+
 	return builder, nil
 }
 
@@ -101,7 +125,7 @@ func (builder *LibvirtDomainBuilder) getDefaultBuilderFlags() []types.BuilderFla
 
 func (builder *LibvirtDomainBuilder) WithMacAddress(address string) *LibvirtDomainBuilder {
 	logger.Info("setting mac address for VM")
-	for _, domainInterface := range builder.newDomainXml.Devices.Interfaces {
+	for _, domainInterface := range builder.NewDomainXml.Devices.Interfaces {
 		if domainInterface.Source.Bridge.Bridge == "br0" {
 			domainInterface.MAC.Address = address
 		}
@@ -113,7 +137,7 @@ func (builder *LibvirtDomainBuilder) WithMacAddress(address string) *LibvirtDoma
 
 func (builder *LibvirtDomainBuilder) WithDomainName(name string) *LibvirtDomainBuilder {
 	logger.Info("setting domain name for VM")
-	builder.newDomainXml.Name = name
+	builder.NewDomainXml.Name = name
 
 	builder.builderFlagMap.MarkAsChecked(SET_VM_NAME)
 	return builder
@@ -121,15 +145,19 @@ func (builder *LibvirtDomainBuilder) WithDomainName(name string) *LibvirtDomainB
 
 func (builder *LibvirtDomainBuilder) WithNumOfCpus(numOfCpus int) *LibvirtDomainBuilder {
 	logger.Info("setting num of CPUs for VM")
-	builder.newDomainXml.CPU = &libvirtxml.DomainCPU{
-		Mode: builder.baseDomainXml.CPU.Mode,
+	cpuMode := "host-passthrough"
+	if builder.BaseDomainXml != nil {
+		cpuMode = builder.BaseDomainXml.CPU.Mode
+	}
+	builder.NewDomainXml.CPU = &libvirtxml.DomainCPU{
+		Mode: cpuMode,
 		Topology: &libvirtxml.DomainCPUTopology{
 			Sockets: numOfCpus,
 			Threads: 1,
 			Cores:   1,
 		},
 	}
-	builder.newDomainXml.VCPU = &libvirtxml.DomainVCPU{
+	builder.NewDomainXml.VCPU = &libvirtxml.DomainVCPU{
 		Placement: "static",
 		Current:   uint(numOfCpus),
 		Value:     uint(numOfCpus),
@@ -142,8 +170,8 @@ func (builder *LibvirtDomainBuilder) WithNumOfCpus(numOfCpus int) *LibvirtDomain
 func (builder *LibvirtDomainBuilder) WithMemory(memory uint, unit string) *LibvirtDomainBuilder {
 	logger.Info("setting memory for VM")
 
-	builder.newDomainXml.Memory = &libvirtxml.DomainMemory{Value: memory, Unit: unit}
-	builder.newDomainXml.CurrentMemory = &libvirtxml.DomainCurrentMemory{Value: memory, Unit: unit}
+	builder.NewDomainXml.Memory = &libvirtxml.DomainMemory{Value: memory, Unit: unit}
+	builder.NewDomainXml.CurrentMemory = &libvirtxml.DomainCurrentMemory{Value: memory, Unit: unit}
 
 	builder.builderFlagMap.MarkAsChecked(SET_MEMORY)
 	return builder
@@ -152,7 +180,7 @@ func (builder *LibvirtDomainBuilder) WithMemory(memory uint, unit string) *Libvi
 func (builder *LibvirtDomainBuilder) WithQcow2DiskPath(path string) *LibvirtDomainBuilder {
 	logger.Info("setting QCOW2 disk path for VM")
 
-	builder.qcow2DomainDisk = &libvirtxml.DomainDisk{
+	builder.QCOW2DomainDisk = &libvirtxml.DomainDisk{
 		Device: "disk",
 		Driver: &libvirtxml.DomainDiskDriver{Name: "qemu", Type: "qcow2", Cache: "none", Discard: "unmap"},
 		Target: &libvirtxml.DomainDiskTarget{Dev: "vdb", Bus: "virtio"},
@@ -167,7 +195,7 @@ func (builder *LibvirtDomainBuilder) WithQcow2DiskPath(path string) *LibvirtDoma
 func (builder *LibvirtDomainBuilder) WithCiDiskPath(path string) *LibvirtDomainBuilder {
 	logger.Info("setting cloud-init disk path for VM")
 
-	builder.ciDomainDisk = &libvirtxml.DomainDisk{
+	builder.CloudInitDomainDisk = &libvirtxml.DomainDisk{
 		Device:   "cdrom",
 		Driver:   &libvirtxml.DomainDiskDriver{Name: "qemu", Type: "raw"},
 		Source:   &libvirtxml.DomainDiskSource{File: &libvirtxml.DomainDiskSourceFile{File: path}},
@@ -189,12 +217,12 @@ func (builder *LibvirtDomainBuilder) BuildXMLString() (string, error) {
 		return "", err
 	}
 
-	builder.newDomainXml.Devices.Disks = []libvirtxml.DomainDisk{
-		*builder.qcow2DomainDisk,
-		*builder.ciDomainDisk,
+	builder.NewDomainXml.Devices.Disks = []libvirtxml.DomainDisk{
+		*builder.QCOW2DomainDisk,
+		*builder.CloudInitDomainDisk,
 	}
 
-	xmlString, err := builder.newDomainXml.Marshal()
+	xmlString, err := builder.NewDomainXml.Marshal()
 	if err != nil {
 		return "", fmt.Errorf("unable to serialize domain from XML definition due to %v", err)
 	}
